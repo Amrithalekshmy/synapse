@@ -131,8 +131,6 @@ Verified execution history from past projects powers forward-looking risk alerts
 ├── 05_ADITHYANBALU_PROGRESS_ANALYTICS.md — Progress engine spec
 ├── 06_ALIADNAN_FRONTEND_AUDIT.md         — Frontend spec
 ├── 07_AMRITHA_MATCHING_ENGINE.md         — Matching engine quick reference
-├── SIH2026-IDEA-Presentation-Format.pptx — Presentation template
-└── SIH PPT guidelines.pdf                — SIH 2026 guidelines
 ```
 
 ---
@@ -166,4 +164,4 @@ That is a complete story in under 30 seconds.
 
 ---
 
-*SYNAPSE — Built for SIH 2026 by Team from Amrita Vishwa Vidyapeetham, Amritapuri Campus*
+*SYNAPSE — Built for SIH 2026 by Tachyons*
