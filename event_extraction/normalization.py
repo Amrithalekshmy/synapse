@@ -278,7 +278,10 @@ def normalize_date(text: str, reference_date: Optional[date] = None) -> Optional
             return resolved.isoformat()
 
     date_patterns = [
-        r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2,4})',
+        # ISO first: an already-normalized date must not be re-read as d-m-y.
+        r'\b(\d{4})-(\d{1,2})-(\d{1,2})\b',
+        # Anchored, so "2026-08-28" cannot match on its "26-08-28" tail.
+        r'\b(\d{1,2})[/\-](\d{1,2})[/\-](\d{2,4})\b',
         r'(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})',
         r'(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})',
     ]

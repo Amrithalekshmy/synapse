@@ -118,11 +118,40 @@ Verified execution history from past projects powers forward-looking risk alerts
 
 ---
 
+## Running SYNAPSE
+
+```bash
+pip install -r requirements.txt
+python server.py
+```
+
+Open <http://127.0.0.1:8000/> for the UI, or `/docs` for the API.
+First boot takes ~15 s while the schedule is parsed and the embedding model loads.
+
+`server.py` is the integration layer: it wires all six modules into one running
+system and serves the interface. No module needs to be started separately.
+
+```bash
+python -m pytest tests/ -q
+```
+
+---
+
 ## Repository Structure
 
 ```
 /
 ├── README.md                              — This file
+├── server.py                              — Integration API + app server (Aliadnan)
+├── frontend/                              — UI served by server.py (Aliadnan)
+├── event_extraction/                      — Text/CSV/PDF → ExecutionEvent (Adithyan)
+├── schedule_parser/                       — P6 / MS Project → ScheduleActivity (Yazeen)
+├── amrita/                                — Seven-layer matching engine (Amritha)
+├── progress_analytics/                    — Variance, risk, conflicts (Adithyanbalu)
+├── knowledge_base/                        — Institutional memory (Adithyagopan)
+├── data/                                  — Synthetic Oil India site data
+├── tests/                                 — Unit + integration suites
+│
 ├── SIH26122 — COMPLETE PROJECT GUIDE.md  — Full system design and architecture
 ├── SIH26122 — AMRITHA'S MODULE.md        — Matching engine detailed spec
 ├── SIH26122 — ADITHYAN'S MODULE.md       — Event extraction detailed spec
