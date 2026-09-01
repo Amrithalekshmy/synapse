@@ -1,31 +1,25 @@
 """
 SYNAPSE — Evaluation Script
 Runs the matching engine against ground_truth.json and prints accuracy.
-
-Run this from the src/ folder:
-    python evaluate.py
 """
 
 import json
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(__file__))
-from matcher import SynapseMatchingEngine
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from amrita.matcher import SynapseMatchingEngine
 
 
 def evaluate():
-    # Load engine with synthetic schedule (Yazeen's output stand-in)
     engine = SynapseMatchingEngine(
-        schedule_path=os.path.join(os.path.dirname(__file__), "../data/schedule.csv")
+        schedule_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "schedule.csv")
     )
 
-    # Load ground truth answer key
-    gt_path = os.path.join(os.path.dirname(__file__), "../data/ground_truth.json")
+    gt_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "ground_truth.json")
     with open(gt_path) as f:
         ground_truth = json.load(f)
 
-    # Counters
     correct = 0
     wrong = 0
     ambiguous_correct = 0
@@ -33,52 +27,45 @@ def evaluate():
     details = []
 
     for item in ground_truth:
-        event_text  = item["input_text"]
-        correct_id  = item["correct_activity_id"]
-        difficulty  = item["difficulty"]
-        event_id    = item["event_id"]
-        note        = item.get("note", "")
+        event_text = item["input_text"]
+        correct_id = item["correct_activity_id"]
+        difficulty = item["difficulty"]
+        event_id = item["event_id"]
+        note = item.get("note", "")
 
-        # Run matcher — pass discipline/location if available in ground truth
-        # In real usage Adithyan provides these; in eval we don't have them so
-        # we test the engine without hints (harder, more honest evaluation)
         result = engine.match_event(event_text)
 
         predicted_id = result["matched_activity_id"]
-        decision     = result["decision"]
-        confidence   = result["confidence"]
+        decision = result["decision"]
+        confidence = result["confidence"]
 
-        # Evaluate result
         if correct_id == "AMBIGUOUS":
-            # These events should NOT be auto-linked
             if decision in ("clarification_needed", "review", "unmatched"):
                 status = "CORRECT"
                 ambiguous_correct += 1
             else:
                 status = "WRONG  "
                 wrong += 1
-
         elif predicted_id == correct_id:
             status = "CORRECT"
             correct += 1
-
         else:
             status = "WRONG  "
             wrong += 1
 
         details.append({
-            "event_id":   event_id,
+            "event_id": event_id,
             "difficulty": difficulty,
-            "input":      event_text,
-            "expected":   correct_id,
-            "predicted":  predicted_id,
+            "input": event_text,
+            "expected": correct_id,
+            "predicted": predicted_id,
             "confidence": confidence,
-            "decision":   decision,
-            "status":     status,
-            "note":       note,
+            "decision": decision,
+            "status": status,
+            "note": note,
+            "explanation": result.get("explanation"),
         })
 
-    # ---- Print results ----
     sep = "=" * 65
 
     print(f"\n{sep}")
@@ -92,7 +79,6 @@ def evaluate():
     overall_acc = (correct + ambiguous_correct) / total * 100
     print(f"\n  Overall accuracy      : {overall_acc:.1f}%")
 
-    # Accuracy by difficulty
     for diff in ("easy", "medium", "hard", "very_hard"):
         subset = [d for d in details if d["difficulty"] == diff]
         if not subset:
@@ -112,6 +98,10 @@ def evaluate():
         print(f"    Predicted : {d['predicted']}  (confidence: {d['confidence']})")
         if d["note"]:
             print(f"    Note      : {d['note']}")
+        if d.get("explanation"):
+            signals = d["explanation"].get("matched_signals", 0)
+            total_s = d["explanation"].get("total_signals", 0)
+            print(f"    Signals   : {signals}/{total_s} matched")
 
     print(f"\n{sep}\n")
 
