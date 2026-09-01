@@ -1,0 +1,21 @@
+ERMHDR	8.3	2026-08-01	Project Export
+%T	PROJECT
+%F	proj_id	proj_short_name	proj_name
+%R	1	OIL-IND-EPC	Oil India EPC Expansion Project
+%T	PROJWBS
+%F	wbs_id	proj_id	parent_wbs_id	wbs_short_name	wbs_name	proj_node_flag
+%R	100	1		OIL-TOP	Oil India EPC Root	Y
+%R	101	1	100	U4	Unit 4 Plant Area	N
+%R	102	1	101	L5-PIP-01	Unit 4 Piping Work Package	N
+%R	103	1	101	L5-ELE-01	Unit 4 Electrical Work Package	N
+%T	TASK
+%F	task_id	proj_id	wbs_id	task_code	task_name	status_code	target_start_date	target_end_date	target_drtn_hr_cnt	act_start_date	act_end_date
+%R	1001	1	102	PIP-001	Fabricate spool S-101 for Line 24	TK_Complete	2026-08-01 00:00	2026-08-05 00:00	40.0	2026-08-01 00:00	2026-08-05 00:00
+%R	1002	1	102	PIP-002	Erect Line 24-XX spool S-101	TK_Active	2026-08-06 00:00	2026-08-10 00:00	40.0	2026-08-06 00:00	
+%R	1003	1	102	PIP-003	Weld Line 24-XX joints	TK_NotStart	2026-08-11 00:00	2026-08-14 00:00	32.0		
+%R	1004	1	103	ELE-001	Install cable tray CT-A in Area B	TK_NotStart	2026-08-05 00:00	2026-08-10 00:00	48.0		
+%T	TASKPRED
+%F	task_pred_id	task_id	pred_task_id	pred_type
+%R	501	1002	1001	PR_FS
+%R	502	1003	1002	PR_FS
+%E

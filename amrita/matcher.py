@@ -41,14 +41,24 @@ class SynapseMatchingEngine:
         self.feedback_store = []
 
         if schedule_path:
-            self.load_activities_from_csv(schedule_path)
+            self.load_schedule_file(schedule_path)
 
     # ------------------------------------------------------------------
     # LOADING ACTIVITIES
     # ------------------------------------------------------------------
 
+    def load_schedule_file(self, path):
+        """Load using Yazeen's ScheduleParser (supports Primavera XER/XML, MS Project, CSV)."""
+        try:
+            from schedule_parser import ScheduleParser
+            parser = ScheduleParser()
+            activities = parser.parse_to_amritha(path)
+            self.load_activities(activities)
+        except Exception:
+            self.load_activities_from_csv(path)
+
     def load_activities_from_csv(self, path):
-        """Load from schedule.csv — used for testing without Yazeen's code."""
+        """Fallback direct CSV loader."""
         df = pd.read_csv(path)
         self.activities = df.to_dict(orient="records")
         self._encode_activities()
