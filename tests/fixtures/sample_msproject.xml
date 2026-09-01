@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+    <Name>OIL_INDIA_MSPROJECT_EXPANSION</Name>
+    <Title>Oil India EPC MS Project Schedule</Title>
+    <Tasks>
+        <!-- Level 1 Summary -->
+        <Task>
+            <UID>0</UID>
+            <ID>0</ID>
+            <Name>Oil India Expansion Project</Name>
+            <OutlineLevel>1</OutlineLevel>
+            <OutlineNumber>1</OutlineNumber>
+            <Summary>1</Summary>
+            <Start>2026-08-01T08:00:00</Start>
+            <Finish>2026-08-30T17:00:00</Finish>
+        </Task>
+        <!-- Level 2 Summary -->
+        <Task>
+            <UID>10</UID>
+            <ID>1</ID>
+            <Name>Unit 4 Piping Area</Name>
+            <OutlineLevel>2</OutlineLevel>
+            <OutlineNumber>1.1</OutlineNumber>
+            <Summary>1</Summary>
+            <Start>2026-08-01T08:00:00</Start>
+            <Finish>2026-08-20T17:00:00</Finish>
+        </Task>
+        <!-- Level 5 Work Component -->
+        <Task>
+            <UID>100</UID>
+            <ID>2</ID>
+            <Name>PIP-001: Fabricate spool S-101 for Line 24</Name>
+            <WBS>1.1.1</WBS>
+            <OutlineLevel>5</OutlineLevel>
+            <OutlineNumber>1.1.1</OutlineNumber>
+            <Summary>0</Summary>
+            <Start>2026-08-01T08:00:00</Start>
+            <Finish>2026-08-05T17:00:00</Finish>
+            <Duration>PT40H0M0S</Duration>
+        </Task>
+        <!-- Level 6 Operational Activity -->
+        <Task>
+            <UID>101</UID>
+            <ID>3</ID>
+            <Name>PIP-002: Erect Line 24-XX spool S-101</Name>
+            <WBS>1.1.2</WBS>
+            <OutlineLevel>6</OutlineLevel>
+            <OutlineNumber>1.1.2</OutlineNumber>
+            <Summary>0</Summary>
+            <Start>2026-08-06T08:00:00</Start>
+            <Finish>2026-08-10T17:00:00</Finish>
+            <Duration>PT40H0M0S</Duration>
+            <PredecessorLink>
+                <PredecessorUID>100</PredecessorUID>
+                <Type>1</Type>
+            </PredecessorLink>
+        </Task>
+        <!-- Level 6 Operational Activity -->
+        <Task>
+            <UID>102</UID>
+            <ID>4</ID>
+            <Name>ELE-001: Install cable tray CT-A in Area B</Name>
+            <WBS>1.2.1</WBS>
+            <OutlineLevel>6</OutlineLevel>
+            <OutlineNumber>1.2.1</OutlineNumber>
+            <Summary>0</Summary>
+            <Start>2026-08-05T08:00:00</Start>
+            <Finish>2026-08-10T17:00:00</Finish>
+            <Duration>PT48H0M0S</Duration>
+        </Task>
+    </Tasks>
+</Project>
