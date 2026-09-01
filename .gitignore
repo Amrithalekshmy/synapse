@@ -10,3 +10,7 @@ build/
 .mypy_cache/
 *.egg
 .env
+SIH PPT guidelines.pdf
+SIH2026-IDEA-Presentation-Format.pptx
+PPT_NOTES.md
+data/feedback_store.json
