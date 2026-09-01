@@ -1,0 +1,31 @@
+DAILY PROGRESS REPORT
+Project: OIL INDIA LIMITED — UNIT 4/5 EPC PROJECT
+Date: 28 August 2026
+Prepared by: Site Engineer - Rajesh Kumar
+
+=== PIPING ===
+Line 24 spool erection was completed by the piping crew today at Unit 4. All four spools are now in place.
+Welding of Line 25 joints is currently in progress. Approximately 3 out of 6 joints have been welded.
+Hydrotest for Line 24-XX is scheduled to begin tomorrow pending QC sign-off.
+Valve V-301 installation is pending material delivery. Expected by 30 Aug.
+
+=== ELECTRICAL ===
+Cable tray installation in Area B has been completed. All CT-A sections are fixed and inspected.
+Power cable pulling for PC-101 started today in Area B. Approximately 120 metres pulled out of 200 metres total.
+MCC panel M-301 has been received at site and is in the Substation staging area awaiting crane availability.
+
+=== CIVIL ===
+Concrete pouring for equipment foundation F-101 in Unit 4 was completed this morning.
+Curing has commenced. Backfilling will begin after 48 hours.
+Excavation for pipe sleeper PS-201 in Unit 5 completed yesterday. Ready for concreting.
+
+=== INSTRUMENTATION ===
+No instrumentation work on site today. Team is in pre-commissioning meeting.
+
+=== MECHANICAL ===
+Pump P-101 has been set on foundation F-101. Alignment work to begin tomorrow.
+Compressor K-201 foundation is not yet ready. Awaiting civil clearance.
+
+=== ISSUES / DELAYS ===
+Crane was unavailable for half the day due to breakdown. This affected MCC panel M-301 installation.
+Material delay on valve V-301 — vendor has confirmed dispatch for 29 Aug.

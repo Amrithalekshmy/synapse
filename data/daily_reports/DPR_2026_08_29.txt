@@ -1,0 +1,31 @@
+DAILY PROGRESS REPORT
+Project: OIL INDIA LIMITED — UNIT 4/5 EPC PROJECT
+Date: 29 August 2026
+Prepared by: Site Engineer - Rajesh Kumar
+
+=== PIPING ===
+Hydrotesting for line 24 completed successfully. No leaks observed. QC sign-off done.
+Line 25 welding finished. All 6 joints completed by evening shift.
+Insulation work on 24-XX started in the afternoon. About 30% done.
+Erection of line 26 spools in Unit 5 is ongoing. 3 of 5 spools placed today.
+
+=== ELECTRICAL ===
+Cable pulling PC-101 in Area B completed. Full 200 metres pulled and tagged.
+Termination of PC-101 started today. Approximately 40% terminated.
+MCC panel M-301 installation done at Substation. Crane was available full day.
+
+=== CIVIL ===
+Backfilling for F-101 foundation started. 60% complete.
+Concrete pouring for pipe sleeper PS-201 in Unit 5 done.
+
+=== INSTRUMENTATION ===
+Flow transmitter FT-101 installed on Line 24 in Unit 4.
+Pressure gauge PG-101 installation also completed today.
+
+=== MECHANICAL ===
+Pump P-101 alignment completed and signed off by vendor rep.
+Suction and discharge piping connection to P-101 started. One flange connected.
+
+=== ISSUES / DELAYS ===
+Line 26 erection slower than planned due to tight work area and scaffolding congestion.
+Instrumentation loop check for FT-101 and PG-101 delayed — calibration kit not on site.

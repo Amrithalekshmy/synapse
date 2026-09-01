@@ -1,0 +1,42 @@
+activity_id,activity_name,wbs_id,wbs_level,discipline,location,planned_start,planned_finish,duration_days,predecessors,successors
+PIP-001,Fabricate spool S-101 for Line 24,PIP-L5-01,L6,piping,Fabrication Yard,2026-08-01,2026-08-05,5,,PIP-002
+PIP-002,Erect Line 24-XX spool S-101,PIP-L5-01,L6,piping,Unit 4,2026-08-06,2026-08-10,5,PIP-001,PIP-003
+PIP-003,Weld Line 24-XX joints,PIP-L5-01,L6,piping,Unit 4,2026-08-11,2026-08-14,4,PIP-002,PIP-004
+PIP-004,Hydrotest Line 24-XX,PIP-L5-01,L6,piping,Unit 4,2026-08-15,2026-08-17,3,PIP-003,PIP-005
+PIP-005,Insulate Line 24-XX,PIP-L5-01,L6,piping,Unit 4,2026-08-18,2026-08-20,3,PIP-004,
+PIP-006,Fabricate spool S-201 for Line 25,PIP-L5-02,L6,piping,Fabrication Yard,2026-08-03,2026-08-07,5,,PIP-007
+PIP-007,Erect Line 25-XX spool S-201,PIP-L5-02,L6,piping,Unit 4,2026-08-08,2026-08-13,6,PIP-006,PIP-008
+PIP-008,Weld Line 25-XX joints,PIP-L5-02,L6,piping,Unit 4,2026-08-14,2026-08-17,4,PIP-007,PIP-009
+PIP-009,Hydrotest Line 25-XX,PIP-L5-02,L6,piping,Unit 4,2026-08-18,2026-08-20,3,PIP-008,
+PIP-010,Install valve V-301 on Line 24,PIP-L5-01,L6,piping,Unit 4,2026-08-21,2026-08-22,2,PIP-004,
+PIP-011,Install valve V-302 on Line 25,PIP-L5-02,L6,piping,Unit 4,2026-08-21,2026-08-22,2,PIP-008,
+PIP-012,Erect Line 26-XX spool S-301,PIP-L5-03,L6,piping,Unit 5,2026-08-10,2026-08-15,6,,PIP-013
+PIP-013,Weld Line 26-XX joints,PIP-L5-03,L6,piping,Unit 5,2026-08-16,2026-08-19,4,PIP-012,PIP-014
+PIP-014,Hydrotest Line 26-XX,PIP-L5-03,L6,piping,Unit 5,2026-08-20,2026-08-22,3,PIP-013,
+ELE-001,Install cable tray CT-A in Area B,ELE-L5-01,L6,electrical,Area B,2026-08-05,2026-08-10,6,,ELE-002
+ELE-002,Pull power cable PC-101 in Area B,ELE-L5-01,L6,electrical,Area B,2026-08-11,2026-08-15,5,ELE-001,ELE-003
+ELE-003,Terminate power cable PC-101,ELE-L5-01,L6,electrical,Area B,2026-08-16,2026-08-18,3,ELE-002,ELE-004
+ELE-004,Test and commission panel P-101,ELE-L5-01,L6,electrical,Area B,2026-08-19,2026-08-22,4,ELE-003,
+ELE-005,Install cable tray CT-B in Area C,ELE-L5-02,L6,electrical,Area C,2026-08-07,2026-08-12,6,,ELE-006
+ELE-006,Pull instrumentation cable IC-201 in Area C,ELE-L5-02,L6,electrical,Area C,2026-08-13,2026-08-17,5,ELE-005,ELE-007
+ELE-007,Terminate instrumentation cable IC-201,ELE-L5-02,L6,electrical,Area C,2026-08-18,2026-08-20,3,ELE-006,
+ELE-008,Install MCC panel M-301 in Substation,ELE-L5-03,L6,electrical,Substation,2026-08-12,2026-08-16,5,,ELE-009
+ELE-009,Cable glanding and termination M-301,ELE-L5-03,L6,electrical,Substation,2026-08-17,2026-08-20,4,ELE-008,
+CIV-001,Excavation for equipment foundation F-101,CIV-L5-01,L6,civil,Unit 4,2026-08-01,2026-08-04,4,,CIV-002
+CIV-002,Reinforcement placement for F-101,CIV-L5-01,L6,civil,Unit 4,2026-08-05,2026-08-07,3,CIV-001,CIV-003
+CIV-003,Concrete pouring for F-101,CIV-L5-01,L6,civil,Unit 4,2026-08-08,2026-08-09,2,CIV-002,CIV-004
+CIV-004,Curing and backfilling F-101,CIV-L5-01,L6,civil,Unit 4,2026-08-10,2026-08-13,4,CIV-003,
+CIV-005,Excavation for pipe sleeper PS-201,CIV-L5-02,L6,civil,Unit 5,2026-08-04,2026-08-06,3,,CIV-006
+CIV-006,Concrete pouring for pipe sleeper PS-201,CIV-L5-02,L6,civil,Unit 5,2026-08-07,2026-08-09,3,CIV-005,
+CIV-007,Road and hardstanding construction Area B,CIV-L5-03,L6,civil,Area B,2026-08-10,2026-08-17,8,,
+INS-001,Install flow transmitter FT-101 on Line 24,INS-L5-01,L6,instrumentation,Unit 4,2026-08-16,2026-08-17,2,PIP-004,INS-002
+INS-002,Install pressure gauge PG-101 on Line 24,INS-L5-01,L6,instrumentation,Unit 4,2026-08-16,2026-08-17,2,PIP-004,INS-003
+INS-003,Loop check FT-101 and PG-101,INS-L5-01,L6,instrumentation,Unit 4,2026-08-18,2026-08-20,3,INS-001,
+INS-004,Install control valve CV-201 on Line 25,INS-L5-02,L6,instrumentation,Unit 4,2026-08-18,2026-08-19,2,PIP-009,INS-005
+INS-005,Loop check CV-201,INS-L5-02,L6,instrumentation,Unit 4,2026-08-20,2026-08-21,2,INS-004,
+MEC-001,Set pump P-101 on foundation F-101,MEC-L5-01,L6,mechanical,Unit 4,2026-08-14,2026-08-16,3,CIV-004,MEC-002
+MEC-002,Align pump P-101 and driver,MEC-L5-01,L6,mechanical,Unit 4,2026-08-17,2026-08-18,2,MEC-001,MEC-003
+MEC-003,Connect suction and discharge piping P-101,MEC-L5-01,L6,mechanical,Unit 4,2026-08-19,2026-08-20,2,MEC-002,MEC-004
+MEC-004,Commission pump P-101,MEC-L5-01,L6,mechanical,Unit 4,2026-08-21,2026-08-22,2,MEC-003,
+MEC-005,Set compressor K-201 on foundation,MEC-L5-02,L6,mechanical,Unit 5,2026-08-15,2026-08-18,4,,MEC-006
+MEC-006,Align compressor K-201,MEC-L5-02,L6,mechanical,Unit 5,2026-08-19,2026-08-20,2,MEC-005,

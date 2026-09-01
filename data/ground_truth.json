@@ -1,0 +1,227 @@
+[
+  {
+    "event_id": "EVT-001",
+    "input_text": "Line 24 spool erection was completed by the piping crew today at Unit 4.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "PIP-002",
+    "correct_activity_name": "Erect Line 24-XX spool S-101",
+    "note": "exact identifier + discipline match"
+  },
+  {
+    "event_id": "EVT-002",
+    "input_text": "Welding of Line 25 joints is currently in progress. Approximately 3 out of 6 joints have been welded.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "PIP-008",
+    "correct_activity_name": "Weld Line 25-XX joints",
+    "note": "partial progress 3/6 — should NOT mark as complete"
+  },
+  {
+    "event_id": "EVT-003",
+    "input_text": "Cable tray installation in Area B has been completed. All CT-A sections are fixed and inspected.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "ELE-001",
+    "correct_activity_name": "Install cable tray CT-A in Area B",
+    "note": "discipline shift to electrical, location match"
+  },
+  {
+    "event_id": "EVT-004",
+    "input_text": "Concrete pouring for equipment foundation F-101 in Unit 4 was completed this morning.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "CIV-003",
+    "correct_activity_name": "Concrete pouring for F-101",
+    "note": "civil discipline, asset identifier F-101"
+  },
+  {
+    "event_id": "EVT-005",
+    "input_text": "Pump P-101 has been set on foundation F-101.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "MEC-001",
+    "correct_activity_name": "Set pump P-101 on foundation F-101",
+    "note": "mechanical, asset P-101"
+  },
+  {
+    "event_id": "EVT-006",
+    "input_text": "Hydrotesting for line 24 completed successfully. No leaks observed.",
+    "source": "DPR_2026_08_29",
+    "difficulty": "medium",
+    "correct_activity_id": "PIP-004",
+    "correct_activity_name": "Hydrotest Line 24-XX",
+    "note": "paraphrase — hydrotesting vs hydrotest"
+  },
+  {
+    "event_id": "EVT-007",
+    "input_text": "Line 25 welding finished. All 6 joints completed by evening shift.",
+    "source": "DPR_2026_08_29",
+    "difficulty": "medium",
+    "correct_activity_id": "PIP-008",
+    "correct_activity_name": "Weld Line 25-XX joints",
+    "note": "same activity as EVT-002 but now completed — status changed"
+  },
+  {
+    "event_id": "EVT-008",
+    "input_text": "MCC panel M-301 installation done at Substation.",
+    "source": "DPR_2026_08_29",
+    "difficulty": "medium",
+    "correct_activity_id": "ELE-008",
+    "correct_activity_name": "Install MCC panel M-301 in Substation",
+    "note": "asset identifier M-301 is critical"
+  },
+  {
+    "event_id": "EVT-009",
+    "input_text": "Flow transmitter FT-101 installed on Line 24 in Unit 4.",
+    "source": "DPR_2026_08_29",
+    "difficulty": "medium",
+    "correct_activity_id": "INS-001",
+    "correct_activity_name": "Install flow transmitter FT-101 on Line 24",
+    "note": "instrumentation discipline, asset FT-101"
+  },
+  {
+    "event_id": "EVT-010",
+    "input_text": "Pump P-101 alignment completed and signed off by vendor rep.",
+    "source": "DPR_2026_08_29",
+    "difficulty": "medium",
+    "correct_activity_id": "MEC-002",
+    "correct_activity_name": "Align pump P-101 and driver",
+    "note": "different action word — alignment vs align"
+  },
+  {
+    "event_id": "EVT-011",
+    "input_text": "spool erection Line 24,Unit 4,completed",
+    "source": "discipline_report_piping.csv",
+    "difficulty": "easy",
+    "correct_activity_id": "PIP-002",
+    "correct_activity_name": "Erect Line 24-XX spool S-101",
+    "note": "structured Excel row — abbreviated format"
+  },
+  {
+    "event_id": "EVT-012",
+    "input_text": "welding L25 finished,Unit 4,completed",
+    "source": "discipline_report_piping.csv",
+    "difficulty": "medium",
+    "correct_activity_id": "PIP-008",
+    "correct_activity_name": "Weld Line 25-XX joints",
+    "note": "abbreviation L25 — must normalise"
+  },
+  {
+    "event_id": "EVT-013",
+    "input_text": "Insulation of 24-XX finished today. Activity complete.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "medium",
+    "correct_activity_id": "PIP-005",
+    "correct_activity_name": "Insulate Line 24-XX",
+    "note": "action word insulation vs insulate"
+  },
+  {
+    "event_id": "EVT-014",
+    "input_text": "line 26 spool erect complete,Unit 5,completed",
+    "source": "discipline_report_piping.csv",
+    "difficulty": "hard",
+    "correct_activity_id": "PIP-012",
+    "correct_activity_name": "Erect Line 26-XX spool S-301",
+    "note": "hard — similar to PIP-002 (Line 24) but different line and unit"
+  },
+  {
+    "event_id": "EVT-015",
+    "input_text": "Control valve CV-201 installation on Line 25 completed today.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "hard",
+    "correct_activity_id": "INS-004",
+    "correct_activity_name": "Install control valve CV-201 on Line 25",
+    "note": "cross-discipline trap — could be piping or instrumentation, asset CV-201 resolves it"
+  },
+  {
+    "event_id": "EVT-016",
+    "input_text": "Termination of power cable PC-101 in Area B completed.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "medium",
+    "correct_activity_id": "ELE-003",
+    "correct_activity_name": "Terminate power cable PC-101",
+    "note": "asset PC-101 and action termination"
+  },
+  {
+    "event_id": "EVT-017",
+    "input_text": "Piping connection to pump P-101 fully completed today. Ready for commissioning.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "hard",
+    "correct_activity_id": "MEC-003",
+    "correct_activity_name": "Connect suction and discharge piping P-101",
+    "note": "hard — says piping but it is mechanical activity. Asset P-101 is the key."
+  },
+  {
+    "event_id": "EVT-018",
+    "input_text": "Pipe work done in Unit 4.",
+    "source": "supervisor_message",
+    "difficulty": "very_hard",
+    "correct_activity_id": "AMBIGUOUS",
+    "correct_activity_name": "AMBIGUOUS",
+    "note": "intentionally ambiguous — should go to review queue, not auto-link"
+  },
+  {
+    "event_id": "EVT-019",
+    "input_text": "Erection completed today.",
+    "source": "supervisor_message",
+    "difficulty": "very_hard",
+    "correct_activity_id": "AMBIGUOUS",
+    "correct_activity_name": "AMBIGUOUS",
+    "note": "no asset, no location — agentic clarification should trigger"
+  },
+  {
+    "event_id": "EVT-020",
+    "input_text": "Compressor K-201 set on foundation. Alignment will begin tomorrow.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "easy",
+    "correct_activity_id": "MEC-005",
+    "correct_activity_name": "Set compressor K-201 on foundation",
+    "note": "asset K-201 and action set are clear"
+  },
+  {
+    "event_id": "EVT-021",
+    "input_text": "IC-201 cable pulling Area C — 80 metres pulled",
+    "source": "discipline_report_electrical.csv",
+    "difficulty": "medium",
+    "correct_activity_id": "ELE-006",
+    "correct_activity_name": "Pull instrumentation cable IC-201 in Area C",
+    "note": "partial progress — 80m pulled, should NOT mark complete"
+  },
+  {
+    "event_id": "EVT-022",
+    "input_text": "Backfilling for F-101 completed.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "medium",
+    "correct_activity_id": "CIV-004",
+    "correct_activity_name": "Curing and backfilling F-101",
+    "note": "civil, asset F-101, action backfilling"
+  },
+  {
+    "event_id": "EVT-023",
+    "input_text": "welding done",
+    "source": "supervisor_message",
+    "difficulty": "very_hard",
+    "correct_activity_id": "AMBIGUOUS",
+    "correct_activity_name": "AMBIGUOUS",
+    "note": "multiple welding activities exist — must clarify which line"
+  },
+  {
+    "event_id": "EVT-024",
+    "input_text": "Excavation for pipe sleeper PS-201 in Unit 5 completed yesterday. Ready for concreting.",
+    "source": "DPR_2026_08_28",
+    "difficulty": "easy",
+    "correct_activity_id": "CIV-005",
+    "correct_activity_name": "Excavation for pipe sleeper PS-201",
+    "note": "relative date yesterday — must resolve to 27 Aug"
+  },
+  {
+    "event_id": "EVT-025",
+    "input_text": "Loop check FT-101 and PG-101 could not be done. Calibration kit arrived but instrument found faulty.",
+    "source": "DPR_2026_08_30",
+    "difficulty": "hard",
+    "correct_activity_id": "INS-003",
+    "correct_activity_name": "Loop check FT-101 and PG-101",
+    "note": "status is BLOCKED/DELAYED not completed — system must capture the right status"
+  }
+]

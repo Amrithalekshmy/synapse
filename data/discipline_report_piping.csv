@@ -1,0 +1,11 @@
+date,discipline,activity_description,location,status,quantity,unit,remarks
+2026-08-28,piping,spool erection Line 24,Unit 4,completed,4,spools,all spools in place
+2026-08-28,piping,welding Line 25 joints,Unit 4,in progress,3,joints,3 of 6 done
+2026-08-29,piping,hydrotest line 24-XX,Unit 4,completed,,,"no leaks, QC signed off"
+2026-08-29,piping,welding L25 finished,Unit 4,completed,6,joints,all joints done
+2026-08-29,piping,insulation 24-XX started,Unit 4,in progress,30,%,30 percent complete
+2026-08-29,piping,erection line 26 spools Unit 5,Unit 5,in progress,3,spools,3 of 5 spools placed
+2026-08-30,piping,insulation Line 24-XX done,Unit 4,completed,,,"activity fully complete"
+2026-08-30,piping,line 26 spool erect complete,Unit 5,completed,5,spools,all 5 spools in place
+2026-08-30,piping,valve V-302 installed line 25,Unit 4,completed,,,"inspection done"
+2026-08-30,piping,valve V-301 line 24 pending,Unit 4,not started,,,"material not received"

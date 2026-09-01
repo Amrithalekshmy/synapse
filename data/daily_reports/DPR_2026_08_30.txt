@@ -1,0 +1,32 @@
+DAILY PROGRESS REPORT
+Project: OIL INDIA LIMITED — UNIT 4/5 EPC PROJECT
+Date: 30 August 2026
+Prepared by: Site Engineer - Rajesh Kumar
+
+=== PIPING ===
+Insulation of 24-XX finished today. Activity complete.
+Line 26 spool erection in Unit 5 — all 5 spools now erected. Welding to begin tomorrow.
+Valve V-302 installed on Line 25 today. Tightening and inspection done.
+Valve V-301 still pending. Material not yet received.
+
+=== ELECTRICAL ===
+Termination of power cable PC-101 in Area B completed.
+Panel P-101 testing and commissioning started. Initial checks passed. Full commission expected tomorrow.
+Instrumentation cable IC-201 pulling started in Area C — 80 metres pulled today.
+
+=== CIVIL ===
+Backfilling for F-101 completed.
+Road and hardstanding work in Area B started today.
+
+=== INSTRUMENTATION ===
+Loop check for FT-101 and PG-101 could not be done. Calibration kit arrived but one instrument found faulty.
+Control valve CV-201 installation on Line 25 completed today.
+
+=== MECHANICAL ===
+Piping connection to pump P-101 fully completed today. Ready for commissioning.
+Compressor K-201 set on foundation. Alignment will begin tomorrow.
+
+=== ISSUES / DELAYS ===
+FT-101 found faulty during pre-loop check. Replacement ordered — ETA 2 days.
+Valve V-301 still not received — now delayed to 1 Sep. Will impact Line 24 completion.
+IC-201 cable pulling slower than expected due to cable drum positioning issue.

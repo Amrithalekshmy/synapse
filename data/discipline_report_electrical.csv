@@ -1,0 +1,10 @@
+date,discipline,activity_description,location,status,quantity,unit,remarks
+2026-08-28,electrical,cable tray CT-A installation Area B,Area B,completed,,,"all sections fixed and inspected"
+2026-08-28,electrical,power cable PC-101 pulling Area B,Area B,in progress,120,metres,120 of 200 metres done
+2026-08-28,electrical,MCC panel M-301 received at substation,Substation,not started,,,"awaiting crane"
+2026-08-29,electrical,cable pulling PC-101 completed,Area B,completed,200,metres,full length pulled and tagged
+2026-08-29,electrical,termination PC-101 started,Area B,in progress,40,%,40 percent done
+2026-08-29,electrical,MCC panel M-301 installed,Substation,completed,,,"crane available full day"
+2026-08-30,electrical,termination power cable PC-101 done,Area B,completed,,,"ready for testing"
+2026-08-30,electrical,panel P-101 commissioning started,Area B,in progress,,,"initial checks passed"
+2026-08-30,electrical,IC-201 cable pulling Area C,Area C,in progress,80,metres,80m pulled today

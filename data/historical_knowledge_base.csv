@@ -1,0 +1,50 @@
+project_id,discipline,activity_type,activity_description,location_type,planned_duration_days,actual_duration_days,variance_days,delayed,delay_cause,record_quality
+OIL-PROJ-01,piping,erection,Erect pipe spool,unit,5,7,2,true,crane availability,verified
+OIL-PROJ-01,piping,erection,Erect pipe spool,unit,5,6,1,true,manpower shortage,verified
+OIL-PROJ-01,piping,erection,Erect line spool,unit,6,6,0,false,,verified
+OIL-PROJ-01,piping,erection,Erect spool on pipe rack,pipe rack,4,7,3,true,crane availability,verified
+OIL-PROJ-01,piping,welding,Weld pipe joints,unit,4,5,1,true,welder qualification,verified
+OIL-PROJ-01,piping,welding,Weld line joints,unit,3,3,0,false,,verified
+OIL-PROJ-01,piping,welding,Weld spool joints,unit,4,6,2,true,weld repair rework,verified
+OIL-PROJ-01,piping,hydrotest,Hydrotest piping line,unit,3,3,0,false,,verified
+OIL-PROJ-01,piping,hydrotest,Hydrotest pipe section,unit,2,4,2,true,punch list items,verified
+OIL-PROJ-01,piping,insulation,Insulate pipe line,unit,3,4,1,true,material delivery,verified
+OIL-PROJ-02,piping,erection,Erect spool fabricated,unit,5,8,3,true,crane breakdown,verified
+OIL-PROJ-02,piping,erection,Erect pipe line spool,unit,6,7,1,true,scaffolding congestion,verified
+OIL-PROJ-02,piping,erection,Erect spool on rack,pipe rack,4,4,0,false,,verified
+OIL-PROJ-02,piping,welding,Weld pipe line joints,unit,5,5,0,false,,verified
+OIL-PROJ-02,piping,welding,Weld joints on line,unit,4,7,3,true,NDT failure rework,verified
+OIL-PROJ-02,piping,valve installation,Install valve on line,unit,2,2,0,false,,verified
+OIL-PROJ-02,piping,valve installation,Install gate valve,unit,2,4,2,true,material not received,verified
+OIL-PROJ-03,piping,erection,Erect pipe spool unit,unit,5,5,0,false,,verified
+OIL-PROJ-03,piping,erection,Erect line spool,unit,6,9,3,true,crane availability,verified
+OIL-PROJ-03,piping,erection,Erect spool on sleeper,unit,3,4,1,true,manpower shortage,verified
+OIL-PROJ-01,electrical,cable tray installation,Install cable tray section,area,6,7,1,true,material delay,verified
+OIL-PROJ-01,electrical,cable tray installation,Install cable tray,area,5,5,0,false,,verified
+OIL-PROJ-01,electrical,cable pulling,Pull power cable,area,5,6,1,true,cable drum issue,verified
+OIL-PROJ-01,electrical,cable pulling,Pull instrumentation cable,area,4,4,0,false,,verified
+OIL-PROJ-01,electrical,termination,Terminate power cable,area,3,3,0,false,,verified
+OIL-PROJ-01,electrical,termination,Terminate cable,area,3,4,1,true,incorrect termination rework,verified
+OIL-PROJ-01,electrical,panel installation,Install MCC panel,substation,5,7,2,true,crane availability,verified
+OIL-PROJ-02,electrical,cable tray installation,Install cable tray,area,6,8,2,true,manpower reallocation,verified
+OIL-PROJ-02,electrical,cable pulling,Pull HV cable,area,5,5,0,false,,verified
+OIL-PROJ-02,electrical,panel installation,Install panel MCC,substation,4,6,2,true,crane availability,verified
+OIL-PROJ-01,civil,excavation,Excavation for foundation,unit,4,4,0,false,,verified
+OIL-PROJ-01,civil,excavation,Excavation for sleeper,unit,3,5,2,true,underground obstruction,verified
+OIL-PROJ-01,civil,concreting,Concrete pouring foundation,unit,2,2,0,false,,verified
+OIL-PROJ-01,civil,concreting,Concrete pour sleeper,unit,2,3,1,true,ready mix delay,verified
+OIL-PROJ-01,civil,backfilling,Backfill foundation,unit,4,4,0,false,,verified
+OIL-PROJ-02,civil,excavation,Excavation foundation,unit,3,4,1,true,rocky soil,verified
+OIL-PROJ-02,civil,concreting,Pour concrete foundation,unit,2,2,0,false,,verified
+OIL-PROJ-01,instrumentation,instrument installation,Install flow transmitter,unit,2,2,0,false,,verified
+OIL-PROJ-01,instrumentation,instrument installation,Install pressure gauge,unit,2,3,1,true,calibration issue,verified
+OIL-PROJ-01,instrumentation,loop check,Loop check instruments,unit,3,5,2,true,faulty instrument,verified
+OIL-PROJ-01,instrumentation,loop check,Loop check transmitter,unit,2,4,2,true,calibration kit unavailable,verified
+OIL-PROJ-02,instrumentation,instrument installation,Install control valve,unit,2,2,0,false,,verified
+OIL-PROJ-02,instrumentation,loop check,Loop check control valve,unit,2,3,1,true,control system issue,verified
+OIL-PROJ-01,mechanical,equipment setting,Set pump on foundation,unit,3,4,1,true,foundation not ready,verified
+OIL-PROJ-01,mechanical,alignment,Align pump and driver,unit,2,2,0,false,,verified
+OIL-PROJ-01,mechanical,alignment,Align rotating equipment,unit,2,3,1,true,vendor rep delay,verified
+OIL-PROJ-01,mechanical,commissioning,Commission pump,unit,2,3,1,true,punch list items,verified
+OIL-PROJ-02,mechanical,equipment setting,Set compressor on foundation,unit,4,6,2,true,crane availability,verified
+OIL-PROJ-02,mechanical,alignment,Align compressor,unit,2,2,0,false,,verified
