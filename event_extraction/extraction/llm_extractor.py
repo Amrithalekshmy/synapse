@@ -2,8 +2,13 @@ import json
 import os
 from typing import Optional
 
+import httpx
+
 from event_extraction.models import ExecutionEvent
 
+
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
+DEFAULT_MODEL   = "anthropic/claude-3.5-haiku"
 
 EXTRACTION_PROMPT = """You are an EPC (Engineering, Procurement, Construction) project event extractor for Oil India Limited.
 
@@ -32,41 +37,46 @@ Return ONLY valid JSON array of event objects. No explanation."""
 
 
 class LLMExtractor:
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-sonnet-4-20250514"):
-        self._api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: str = DEFAULT_MODEL,
+    ):
+        self._api_key = api_key or os.environ.get("OPENROUTER_API_KEY")
         self._model = model
-        self._client = None
-
-    def _get_client(self):
-        if self._client is None:
-            if not self._api_key:
-                raise RuntimeError("ANTHROPIC_API_KEY not set — LLM extraction unavailable")
-            try:
-                import anthropic
-                self._client = anthropic.Anthropic(api_key=self._api_key)
-            except ImportError:
-                raise ImportError("anthropic package required: pip install anthropic")
-        return self._client
 
     @property
     def available(self) -> bool:
-        return bool(self._api_key or os.environ.get("ANTHROPIC_API_KEY"))
+        return bool(self._api_key or os.environ.get("OPENROUTER_API_KEY"))
 
     def extract(self, text: str, reference_date: Optional[str] = None) -> list[dict]:
-        client = self._get_client()
+        key = self._api_key or os.environ.get("OPENROUTER_API_KEY")
+        if not key:
+            raise RuntimeError("OPENROUTER_API_KEY not set — LLM extraction unavailable")
 
         user_message = f"Report text:\n{text}"
         if reference_date:
             user_message += f"\n\nReport date: {reference_date}"
 
-        response = client.messages.create(
-            model=self._model,
-            max_tokens=2000,
-            system=EXTRACTION_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
+        response = httpx.post(
+            f"{OPENROUTER_BASE}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self._model,
+                "max_tokens": 2000,
+                "messages": [
+                    {"role": "system", "content": EXTRACTION_PROMPT},
+                    {"role": "user",   "content": user_message},
+                ],
+            },
+            timeout=30.0,
         )
+        response.raise_for_status()
 
-        raw_response = response.content[0].text.strip()
+        raw_response = response.json()["choices"][0]["message"]["content"].strip()
 
         if raw_response.startswith("```"):
             lines = raw_response.split("\n")

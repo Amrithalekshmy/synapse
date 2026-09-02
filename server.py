@@ -197,7 +197,7 @@ class SynapseState:
 
     def bootstrap(self) -> None:
         self.parser = ScheduleParser()
-        _api_key = os.environ.get("ANTHROPIC_API_KEY")
+        _api_key = os.environ.get("OPENROUTER_API_KEY")
         self.extractor = ExtractionPipeline(use_llm=bool(_api_key), llm_api_key=_api_key)
 
         parse_result = self.parser.parse(str(SCHEDULE_CSV))
@@ -851,7 +851,7 @@ def health() -> dict:
         "activities_loaded": len(state.activities),
         "historical_records": len(state.kb) if state.kb else 0,
         "events_tracked": len(state.events),
-        "llm_extraction_active": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "llm_extraction_active": bool(os.environ.get("OPENROUTER_API_KEY")),
         "modules": {
             "event_extraction": "adithyan",
             "schedule_parser": "yazeen",

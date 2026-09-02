@@ -1038,8 +1038,8 @@ $('#btn-reset').onclick = async () => {
   try {
     const health = await api('/api/health');
     const aiMode = health.llm_extraction_active
-      ? 'Claude LLM extraction active.'
-      : 'Semantic extraction active (set ANTHROPIC_API_KEY to enable Claude LLM).';
+      ? 'LLM extraction active (via OpenRouter).'
+      : 'Semantic extraction active (set OPENROUTER_API_KEY to enable LLM).';
     consoleLine('system',
       `Ready. ${health.activities_loaded} schedule activities and ` +
       `${health.historical_records} historical records loaded. ${aiMode} Describe what happened on site.`);
