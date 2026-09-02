@@ -8,7 +8,7 @@ from event_extraction.models import ExecutionEvent
 
 
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-DEFAULT_MODEL   = "anthropic/claude-3.5-haiku"
+DEFAULT_MODEL   = "google/gemini-2.0-flash-exp:free"
 
 EXTRACTION_PROMPT = """You are an EPC (Engineering, Procurement, Construction) project event extractor for Oil India Limited.
 
