@@ -22,6 +22,7 @@ UI:   http://127.0.0.1:8000/
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import tempfile
@@ -196,7 +197,8 @@ class SynapseState:
 
     def bootstrap(self) -> None:
         self.parser = ScheduleParser()
-        self.extractor = ExtractionPipeline(use_llm=False)
+        _api_key = os.environ.get("ANTHROPIC_API_KEY")
+        self.extractor = ExtractionPipeline(use_llm=bool(_api_key), llm_api_key=_api_key)
 
         parse_result = self.parser.parse(str(SCHEDULE_CSV))
         for activity in parse_result.to_amritha_format():
@@ -849,6 +851,7 @@ def health() -> dict:
         "activities_loaded": len(state.activities),
         "historical_records": len(state.kb) if state.kb else 0,
         "events_tracked": len(state.events),
+        "llm_extraction_active": bool(os.environ.get("ANTHROPIC_API_KEY")),
         "modules": {
             "event_extraction": "adithyan",
             "schedule_parser": "yazeen",

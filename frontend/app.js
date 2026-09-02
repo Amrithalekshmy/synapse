@@ -925,13 +925,50 @@ $('#sup-input').onkeydown = (event) => { if (event.key === 'Enter') sendSupervis
 
 $('#btn-voice').onclick = () => {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Recognition) { toast('This browser has no speech recognition. Type instead.', true); return; }
+  if (!Recognition) { toast('Speech recognition not supported — use Chrome or Edge.', true); return; }
+
+  const btn = $('#btn-voice');
+  if (btn.classList.contains('recording')) return;
+
   const recognition = new Recognition();
   recognition.lang = 'en-IN';
-  recognition.onresult = (event) => sendSupervisor(event.results[0][0].transcript);
-  recognition.onerror = () => toast('Could not hear that.', true);
-  recognition.start();
-  toast('Listening…');
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    btn.textContent = '● Listening…';
+    btn.classList.add('recording');
+  };
+
+  recognition.onresult = (ev) => {
+    const transcript = ev.results[0][0].transcript;
+    $('#sup-input').value = transcript;
+    sendSupervisor(transcript);
+  };
+
+  const ERROR_LABELS = {
+    'not-allowed':   'Microphone blocked — click the lock icon in the address bar and allow mic access.',
+    'no-speech':     'No speech detected. Speak closer to the mic and try again.',
+    'audio-capture': 'No microphone found.',
+    'network':       'Network error during speech recognition.',
+    'aborted':       'Recognition cancelled.',
+  };
+  recognition.onerror = (ev) => {
+    toast(ERROR_LABELS[ev.error] || ('Speech error: ' + ev.error), true);
+  };
+
+  recognition.onend = () => {
+    btn.textContent = 'Speak';
+    btn.classList.remove('recording');
+  };
+
+  try {
+    recognition.start();
+  } catch (e) {
+    toast('Could not start mic: ' + e.message, true);
+    btn.textContent = 'Speak';
+    btn.classList.remove('recording');
+  }
 };
 
 $('#file-input').onchange = (event) => { $('#btn-upload').disabled = !event.target.files.length; };
@@ -1000,9 +1037,12 @@ $('#btn-reset').onclick = async () => {
 (async function boot() {
   try {
     const health = await api('/api/health');
+    const aiMode = health.llm_extraction_active
+      ? 'Claude LLM extraction active.'
+      : 'Semantic extraction active (set ANTHROPIC_API_KEY to enable Claude LLM).';
     consoleLine('system',
       `Ready. ${health.activities_loaded} schedule activities and ` +
-      `${health.historical_records} historical records loaded. Describe what happened on site.`);
+      `${health.historical_records} historical records loaded. ${aiMode} Describe what happened on site.`);
   } catch (error) {
     consoleLine('err', 'Cannot reach the SYNAPSE API: ' + error.message);
   }

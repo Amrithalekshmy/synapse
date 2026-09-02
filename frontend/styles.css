@@ -220,6 +220,8 @@ a { color: var(--accent); }
 .btn.good   { border-color: var(--high);   color: var(--high); }
 .btn.danger { border-color: var(--low);    color: var(--low); }
 .btn.ghost  { background: transparent; }
+.btn.recording { border-color: var(--low); color: var(--low); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
 .btn.sm     { padding: 5px 10px; font-size: 12px; }
 
 input[type="text"], input[type="search"], textarea, select {
