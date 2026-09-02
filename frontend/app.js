@@ -22,6 +22,7 @@ const VIEWS = [
   { id: 'risk',       step: '6', label: 'Risk intelligence' },
   { id: 'history',    step: '7', label: 'Institutional memory' },
   { id: 'audit',      step: '8', label: 'Audit trail' },
+  { id: 'settings',   step: '⚙', label: 'Settings' },
 ];
 
 const state = {
@@ -148,6 +149,7 @@ const LOADERS = {
   risk:      loadRisk,
   history:   () => {},
   audit:     loadAudit,
+  settings:  loadSettings,
 };
 
 function show(viewId) {
@@ -912,6 +914,56 @@ async function openChain(eventId) {
     <div class="chain">${chainHtml(data.chain)}</div>`);
 }
 
+/* ---------------------------------------------------------- 9 · settings */
+
+async function loadSettings() {
+  try {
+    const data = await api('/api/settings');
+    if (data.key_configured) {
+      $('#settings-api-key').value = '';
+      $('#settings-api-key').placeholder = data.openrouter_api_key || 'Key configured';
+    }
+    if (data.model) {
+      $('#settings-model').value = data.model;
+    }
+    $('#settings-status').textContent = data.key_configured
+      ? '✓ API key configured'
+      : 'No API key set — LLM extraction disabled';
+    $('#settings-status').style.color = data.key_configured ? 'var(--high)' : 'var(--medium)';
+  } catch (error) {
+    $('#settings-status').textContent = 'Could not load settings';
+    $('#settings-status').style.color = 'var(--low)';
+  }
+}
+
+async function saveSettings() {
+  const key = $('#settings-api-key').value.trim();
+  const model = $('#settings-model').value.trim();
+  const body = {};
+  if (key) body.openrouter_api_key = key;
+  if (model) body.model = model;
+
+  $('#btn-save-settings').disabled = true;
+  $('#settings-status').textContent = 'Saving…';
+  $('#settings-status').style.color = 'var(--text-dim)';
+  try {
+    const data = await api('/api/settings', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    $('#settings-api-key').value = '';
+    toast('Settings saved.');
+    await loadSettings();
+    await loadProgress();
+  } catch (error) {
+    toast(error.message, true);
+    $('#settings-status').textContent = 'Save failed';
+    $('#settings-status').style.color = 'var(--low)';
+  } finally {
+    $('#btn-save-settings').disabled = false;
+  }
+}
+
 /* ------------------------------------------------------------ modal/wire */
 
 function openModal(html) { $('#modal').innerHTML = html; $('#overlay').hidden = false; }
@@ -929,14 +981,17 @@ $('#btn-voice').onclick = () => {
 
   const btn = $('#btn-voice');
   if (btn.classList.contains('recording')) return;
+  const micIcon = btn.innerHTML;
 
   const recognition = new Recognition();
   recognition.lang = 'en-IN';
   recognition.continuous = false;
   recognition.interimResults = false;
 
+  const restoreIcon = () => { btn.innerHTML = micIcon; btn.classList.remove('recording'); };
+
   recognition.onstart = () => {
-    btn.textContent = '● Listening…';
+    btn.innerHTML = '<span style="font-size:14px">●</span>';
     btn.classList.add('recording');
   };
 
@@ -957,17 +1012,13 @@ $('#btn-voice').onclick = () => {
     toast(ERROR_LABELS[ev.error] || ('Speech error: ' + ev.error), true);
   };
 
-  recognition.onend = () => {
-    btn.textContent = 'Speak';
-    btn.classList.remove('recording');
-  };
+  recognition.onend = restoreIcon;
 
   try {
     recognition.start();
   } catch (e) {
     toast('Could not start mic: ' + e.message, true);
-    btn.textContent = 'Speak';
-    btn.classList.remove('recording');
+    restoreIcon();
   }
 };
 
@@ -977,8 +1028,10 @@ $('#btn-upload').onclick = async () => {
   if (!file) return;
   const body = new FormData();
   body.append('file', file);
-  $('#btn-upload').disabled = true;
-  $('#btn-upload').innerHTML = '<span class="busy"></span> Processing';
+  const uploadBtn = $('#btn-upload');
+  const originalHtml = uploadBtn.innerHTML;
+  uploadBtn.disabled = true;
+  uploadBtn.innerHTML = '<span class="busy"></span> Processing';
   try {
     const res = await fetch('/api/events/upload', { method: 'POST', body });
     if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
@@ -987,8 +1040,8 @@ $('#btn-upload').onclick = async () => {
   } catch (error) {
     toast(error.message, true);
   } finally {
-    $('#btn-upload').disabled = false;
-    $('#btn-upload').textContent = 'Process document';
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = originalHtml;
   }
 };
 
@@ -1019,6 +1072,19 @@ $('#history-input').onkeydown = (event) => {
 document.querySelectorAll('.history-example').forEach((button) => {
   button.onclick = () => runHistory(button.textContent);
 });
+
+$('#btn-save-settings').onclick = saveSettings;
+$('#btn-toggle-key').onclick = () => {
+  const input = $('#settings-api-key');
+  const btn = $('#btn-toggle-key');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+};
 
 $('#btn-refresh').onclick = async () => { await loadProgress(); show(state.view); };
 $('#btn-reset').onclick = async () => {

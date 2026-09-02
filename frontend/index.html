@@ -3,16 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0f1a">
   <title>SYNAPSE — Planning-to-Execution Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2335e0c8'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%2304121a'>S</text></svg>">
 </head>
 <body>
 <div class="app">
 
-  <!-- SYNAPSE sits top-left on every screen -->
+  <!-- Brand — SYNAPSE sits top-left on every screen -->
   <div class="brand">
-    <div class="brand-mark">S</div>
+    <div class="brand-mark">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="SYNAPSE logo">
+        <rect width="30" height="30" rx="8" fill="url(#brand-grad)"/>
+        <path d="M10 20.5C10 20.5 11.5 18 15 18C18.5 18 20 20.5 20 20.5" stroke="#04121a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 15C10 15 11.5 12.5 15 12.5C18.5 12.5 20 15 20 15" stroke="#04121a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 9.5C10 9.5 11.5 7 15 7C18.5 7 20 9.5 20 9.5" stroke="#04121a" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="8" cy="15" r="2" fill="#04121a"/>
+        <circle cx="22" cy="15" r="2" fill="#04121a"/>
+        <defs><linearGradient id="brand-grad" x1="0" y1="0" x2="30" y2="30"><stop stop-color="#35e0c8"/><stop offset="1" stop-color="#1d8fb5"/></linearGradient></defs>
+      </svg>
+    </div>
     <div class="brand-text">
       <div class="brand-name">SYNAPSE</div>
       <div class="brand-sub">Oil India · SIH26122</div>
@@ -22,8 +36,14 @@
   <header class="topbar">
     <div class="vitals" id="vitals"></div>
     <div class="row">
-      <button class="btn sm ghost" id="btn-refresh">Refresh</button>
-      <button class="btn sm ghost" id="btn-reset">Reset session</button>
+      <button class="btn sm ghost" id="btn-refresh">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><path d="M1.5 8a6.5 6.5 0 0 1 11.48-4.16"/><path d="M14.5 8a6.5 6.5 0 0 1-11.48 4.16"/><polyline points="13 1 13 4.5 9.5 4.5"/><polyline points="3 15 3 11.5 6.5 11.5"/></svg>
+        Refresh
+      </button>
+      <button class="btn sm ghost" id="btn-reset">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><path d="M2 2l12 12M2 14L14 2"/></svg>
+        Reset session
+      </button>
     </div>
   </header>
 
@@ -47,10 +67,20 @@
         <div class="panel">
           <div class="panel-title">Field console</div>
           <div class="console" id="console"></div>
-          <div class="row" style="margin-top:12px">
-            <input type="text" id="sup-input" placeholder="e.g. Erection completed today." autocomplete="off">
-            <button class="btn ghost" id="btn-voice" title="Voice input (browser speech recognition)">Speak</button>
-            <button class="btn primary" id="btn-send">Send</button>
+          <div class="row" style="margin-top:12px;gap:10px">
+            <input type="text" id="sup-input" placeholder="e.g. Erection completed today." autocomplete="off" style="font-size:16px;padding:14px 16px;min-height:48px">
+            <button class="btn voice-btn" id="btn-voice" title="Voice input (browser speech recognition)" style="min-width:56px;min-height:56px;border-radius:50%;padding:0;display:grid;place-items:center;border-color:var(--accent);background:var(--accent-glow)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="1" width="6" height="12" rx="3"/>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                <line x1="12" y1="18" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+            <button class="btn primary" id="btn-send" style="min-height:48px;padding:14px 22px;font-size:15px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send
+            </button>
           </div>
           <p class="tiny faint" style="margin:9px 0 0">
             Try: <code>Erection completed today.</code> — deliberately ambiguous, so the
@@ -89,15 +119,21 @@
           <div class="panel-title">Upload a document</div>
           <p class="panel-note">PDF, TXT, CSV or Excel.</p>
           <input type="file" id="file-input" accept=".txt,.md,.csv,.xlsx,.xls,.pdf"
-                 style="padding:9px;border:1px dashed var(--line);border-radius:6px;background:var(--bg)">
+                 style="padding:12px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);min-height:48px">
           <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="btn-upload" disabled>Process document</button>
+            <button class="btn primary" id="btn-upload" disabled style="min-height:48px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Process document
+            </button>
           </div>
 
           <div class="panel-title" style="margin-top:22px">Or paste report text</div>
           <textarea id="paste-input" placeholder="=== PIPING ===&#10;Line 24 spool erection completed today at Unit 4."></textarea>
           <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="btn-paste">Extract events</button>
+            <button class="btn primary" id="btn-paste" style="min-height:48px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              Extract events
+            </button>
           </div>
         </div>
       </div>
@@ -119,7 +155,7 @@
         </p>
       </div>
       <div class="row" style="margin-bottom:12px">
-        <select id="events-filter" style="max-width:220px">
+        <select id="events-filter" style="max-width:220px;min-height:48px">
           <option value="">All link states</option>
           <option value="auto_linked">Auto-linked</option>
           <option value="approved">Approved by planner</option>
@@ -173,9 +209,9 @@
         </p>
       </div>
       <div class="row" style="margin-bottom:12px">
-        <select id="schedule-discipline" style="max-width:200px"><option value="">All disciplines</option></select>
-        <label class="row tiny dim" style="gap:6px">
-          <input type="checkbox" id="schedule-touched" style="width:auto"> Only activities with field evidence
+        <select id="schedule-discipline" style="max-width:200px;min-height:48px"><option value="">All disciplines</option></select>
+        <label class="row tiny dim" style="gap:6px;min-height:48px;align-items:center">
+          <input type="checkbox" id="schedule-touched" style="width:20px;height:20px"> Only activities with field evidence
         </label>
       </div>
       <div class="panel">
@@ -203,7 +239,7 @@
         </p>
       </div>
       <div class="row" style="margin-bottom:12px">
-        <select id="risk-discipline" style="max-width:200px"><option value="">All disciplines</option></select>
+        <select id="risk-discipline" style="max-width:200px;min-height:48px"><option value="">All disciplines</option></select>
         <span class="dim tiny" id="risk-counts"></span>
       </div>
       <div id="risk-list"></div>
@@ -220,14 +256,17 @@
       </div>
       <div class="panel">
         <div class="row">
-          <input type="search" id="history-input" placeholder="Which piping activities delay most often?">
-          <button class="btn primary" id="btn-history">Ask</button>
+          <input type="search" id="history-input" placeholder="Which piping activities delay most often?" style="min-height:48px;font-size:15px">
+          <button class="btn primary" id="btn-history" style="min-height:48px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Ask
+          </button>
         </div>
         <div class="row tiny" style="margin-top:10px;gap:6px">
           <span class="faint">Try:</span>
-          <button class="btn sm ghost history-example">What causes piping erection delays?</button>
-          <button class="btn sm ghost history-example">Average delay for electrical cable pulling</button>
-          <button class="btn sm ghost history-example">Which discipline is most delayed?</button>
+          <button class="btn sm ghost history-example" style="min-height:40px">What causes piping erection delays?</button>
+          <button class="btn sm ghost history-example" style="min-height:40px">Average delay for electrical cable pulling</button>
+          <button class="btn sm ghost history-example" style="min-height:40px">Which discipline is most delayed?</button>
         </div>
       </div>
       <div id="history-result"></div>
@@ -243,7 +282,7 @@
         </p>
       </div>
       <div class="row" style="margin-bottom:12px">
-        <select id="audit-stage" style="max-width:220px">
+        <select id="audit-stage" style="max-width:220px;min-height:48px">
           <option value="">All stages</option>
           <option value="INGEST">Ingest</option>
           <option value="EXTRACT">Extract</option>
@@ -258,6 +297,33 @@
         <span class="dim tiny" id="audit-count"></span>
       </div>
       <div class="panel"><div class="chain" id="audit-list"></div></div>
+    </section>
+
+    <!-- ================================================= 9 · SETTINGS -->
+    <section class="view" id="view-settings" hidden>
+      <div class="view-head">
+        <h1 class="view-title">Settings</h1>
+        <p class="view-sub">Configure API keys and system preferences.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-title">OpenRouter API Key</div>
+        <p class="panel-note">Required for LLM-powered event extraction. Get a key at openrouter.ai</p>
+        <div class="settings-field">
+          <label for="settings-api-key">API Key</label>
+          <div class="row" style="gap:8px">
+            <input type="password" id="settings-api-key" placeholder="sk-or-v1-..." autocomplete="off" style="flex:1;min-height:48px">
+            <button class="btn ghost" id="btn-toggle-key" type="button" style="min-height:48px">Show</button>
+          </div>
+        </div>
+        <div class="settings-field">
+          <label for="settings-model">Model</label>
+          <input type="text" id="settings-model" value="google/gemini-2.0-flash-exp:free" placeholder="model identifier" style="min-height:48px">
+        </div>
+        <div class="row" style="margin-top:16px;gap:8px">
+          <button class="btn primary" id="btn-save-settings" style="min-height:48px">Save settings</button>
+          <span class="dim tiny" id="settings-status"></span>
+        </div>
+      </div>
     </section>
 
   </main>

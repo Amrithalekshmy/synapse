@@ -184,6 +184,9 @@ class SynapseState:
         self.nl_query: NLQueryEngine | None = None
         self.productivity: ProductivityTracker | None = None
 
+        self._openrouter_key: str | None = os.environ.get("OPENROUTER_API_KEY")
+        self._openrouter_model: str = "google/gemini-2.0-flash-exp:free"
+
         self.activities: dict[str, dict] = {}     # activity_id -> parsed activity
         self.actuals: dict[str, dict] = {}        # activity_id -> observed state
         self.events: dict[str, dict] = {}         # event_id -> tracked event record
@@ -197,8 +200,9 @@ class SynapseState:
 
     def bootstrap(self) -> None:
         self.parser = ScheduleParser()
-        _api_key = os.environ.get("OPENROUTER_API_KEY")
-        self.extractor = ExtractionPipeline(use_llm=bool(_api_key), llm_api_key=_api_key)
+        self.extractor = ExtractionPipeline(
+            use_llm=bool(self._openrouter_key), llm_api_key=self._openrouter_key
+        )
 
         parse_result = self.parser.parse(str(SCHEDULE_CSV))
         for activity in parse_result.to_amritha_format():
@@ -1546,6 +1550,54 @@ def history_search(q: str = Query(..., min_length=2), limit: int = 10) -> dict:
         "supporting_records": _semantic_records(q, limit),
         "total_records": len(state.kb),
     }
+
+
+# --- settings ---------------------------------------------------------------
+
+class SettingsUpdate(BaseModel):
+    openrouter_api_key: str | None = Field(None, description="OpenRouter API key")
+    model: str | None = Field(None, description="Model identifier for LLM extraction")
+
+
+def _mask_key(key: str | None) -> str | None:
+    """Return a masked version of the key, showing only the last 4 characters."""
+    if not key:
+        return None
+    if len(key) <= 4:
+        return "****"
+    return "*" * (len(key) - 4) + key[-4:]
+
+
+@app.get("/api/settings", tags=["Settings"])
+def get_settings() -> dict:
+    """Return current LLM settings (API key is masked)."""
+    return {
+        "openrouter_api_key": _mask_key(state._openrouter_key),
+        "key_configured": bool(state._openrouter_key),
+        "model": state._openrouter_model,
+    }
+
+
+@app.post("/api/settings", tags=["Settings"])
+def update_settings(body: SettingsUpdate) -> dict:
+    """Update LLM settings and re-initialise the extraction pipeline."""
+    if body.openrouter_api_key is not None:
+        state._openrouter_key = body.openrouter_api_key or None
+    if body.model is not None:
+        state._openrouter_model = body.model
+
+    try:
+        state.extractor = ExtractionPipeline(
+            use_llm=bool(state._openrouter_key), llm_api_key=state._openrouter_key
+        )
+        state.log_audit(
+            stage="SYSTEM",
+            summary="LLM settings updated",
+            detail={"model": state._openrouter_model, "key_set": bool(state._openrouter_key)},
+        )
+        return {"status": "ok", "key_configured": bool(state._openrouter_key), "model": state._openrouter_model}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to reinitialise extractor: {exc}")
 
 
 # --- session control --------------------------------------------------------
