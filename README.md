@@ -96,12 +96,13 @@ Verified execution history from past projects powers forward-looking risk alerts
 | Layer | Technology |
 |---|---|
 | Backend | Python, FastAPI, Pydantic |
-| LLM Extraction | LLM API (structured output) |
-| Embedding Matching | Sentence Transformers |
-| Vector Search | PostgreSQL + pgvector |
-| Data Processing | pandas, openpyxl, PDF parser |
-| Frontend | React |
-| Active Learning Store | PostgreSQL |
+| LLM Extraction | OpenRouter API → `google/gemini-2.0-flash-exp:free` (optional, enabled via `OPENROUTER_API_KEY`) |
+| Embedding Matching | sentence-transformers (`all-MiniLM-L6-v2`), TF-IDF fallback |
+| Storage (prototype) | In-memory state + CSV / JSON files |
+| Storage (production) | PostgreSQL + pgvector (schema in `knowledge_base/schema.py`) |
+| Data Processing | pandas, openpyxl, pdfplumber |
+| Frontend | Vanilla JavaScript (HTML + CSS + app.js — no framework) |
+| Active Learning Store | In-memory list with JSON persistence |
 
 ---
 
@@ -122,11 +123,18 @@ Verified execution history from past projects powers forward-looking risk alerts
 
 ```bash
 pip install -r requirements.txt
-python server.py
+uvicorn server:app
 ```
 
 Open <http://127.0.0.1:8000/> for the UI, or `/docs` for the API.
 First boot takes ~15 s while the schedule is parsed and the embedding model loads.
+
+To enable LLM extraction, set your OpenRouter API key before starting the server:
+```bash
+export OPENROUTER_API_KEY=sk-or-v1-...
+uvicorn server:app
+```
+Or configure it live via the Settings panel in the UI (no restart needed).
 
 `server.py` is the integration layer: it wires all six modules into one running
 system and serves the interface. No module needs to be started separately.
