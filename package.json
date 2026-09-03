@@ -1,0 +1,26 @@
+{
+  "name": "synapse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SYNAPSE - Synchronized NLP Activity-to-Plan Scheduling Engine (SIH 2026, SIH26122, Oil India Limited)",
+  "scripts": {
+    "dev": "python -m uvicorn server:app --reload --host 127.0.0.1 --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "python -m uvicorn server:app --host 127.0.0.1 --port 8000",
+    "open": "python -c \"import webbrowser;webbrowser.open('http://127.0.0.1:8000/')\"",
+    "setup": "python -m pip install -r requirements.txt && cd frontend && npm install",
+    "test": "python -m pytest tests/ -q",
+    "test:integration": "python -m pytest tests/test_server_integration.py -q",
+    "health": "python -c \"import urllib.request,json;print(json.dumps(json.load(urllib.request.urlopen('http://127.0.0.1:8000/api/health')),indent=2))\""
+  },
+  "keywords": [
+    "sih2026",
+    "epc",
+    "primavera",
+    "nlp",
+    "schedule",
+    "oil-india"
+  ],
+  "license": "UNLICENSED"
+}

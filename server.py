@@ -1712,7 +1712,17 @@ def reset_session(user: dict = Depends(require_admin)) -> dict:
 
 # --- static frontend --------------------------------------------------------
 
-if FRONTEND.exists():
+FRONTEND_DIST = FRONTEND / "dist"
+
+if FRONTEND_DIST.exists():
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_frontend(full_path: str = "") -> FileResponse:
+        """SPA catch-all — serve Vite-built React frontend."""
+        file_path = FRONTEND_DIST / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(FRONTEND_DIST / "index.html"))
+elif FRONTEND.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND)), name="static")
 
     @app.get("/", include_in_schema=False)
