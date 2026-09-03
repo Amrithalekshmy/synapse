@@ -60,6 +60,9 @@ from progress_analytics.status import ActivityStatus
 
 from knowledge_base import DelayRiskEngine, KnowledgeBase, NLQueryEngine, ProductivityTracker
 
+from amrita.cascade import CascadeImpactEngine
+from amrita.rl_priority import RLPriorityQueue
+
 ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 FRONTEND = ROOT / "frontend"
@@ -261,6 +264,9 @@ class SynapseState:
         self._openrouter_key: str | None = os.environ.get("OPENROUTER_API_KEY")
         self._openrouter_model: str = "google/gemini-2.0-flash-exp:free"
 
+        self.cascade: CascadeImpactEngine = CascadeImpactEngine()
+        self.rl: RLPriorityQueue = RLPriorityQueue()
+
         self.activities: dict[str, dict] = {}     # activity_id -> parsed activity
         self.actuals: dict[str, dict] = {}        # activity_id -> observed state
         self.events: dict[str, dict] = {}         # event_id -> tracked event record
@@ -284,6 +290,17 @@ class SynapseState:
 
         self.engine = SynapseMatchingEngine()
         self.engine.load_activities(list(self.activities.values()))
+
+        # Load cascade engine with full activity list (includes predecessors/successors)
+        import csv as _csv
+        raw_rows = []
+        with open(str(SCHEDULE_CSV)) as _f:
+            raw_rows = list(_csv.DictReader(_f))
+        self.cascade.load_activities(raw_rows)
+
+        # Load RL priority weights (or start fresh if file missing)
+        rl_weights_path = str(DATA / "rl_weights.json")
+        self.rl.load(rl_weights_path)
 
         self.kb = KnowledgeBase()
         if HISTORY_CSV.exists():
@@ -814,6 +831,17 @@ def _detect_state_regressions() -> list[dict]:
     return found
 
 
+def _activity_schedule_risk(activity_id: Optional[str]) -> str:
+    """Return HIGH/MEDIUM/LOW risk for an activity using the knowledge base."""
+    if not activity_id or activity_id not in state.activities:
+        return "LOW"
+    try:
+        risk_payload = state.historical_risk(activity_id)
+        return (risk_payload.get("risk_level") or "LOW").upper()
+    except Exception:
+        return "LOW"
+
+
 def public_event(tracked: dict) -> dict:
     """Shape a tracked event for the UI — never hide uncertainty."""
     event = tracked["event"]
@@ -858,6 +886,9 @@ def public_event(tracked: dict) -> dict:
         "clarification": tracked.get("clarification"),
         "review": tracked.get("review"),
         "ingested_at": tracked["ingested_at"],
+        # --- RL priority & cascade impact (computed on-the-fly) ---
+        "rl_priority": tracked.get("rl_priority"),
+        "cascade_impact": tracked.get("cascade_impact"),
     }
 
 
@@ -1251,17 +1282,65 @@ def get_event(event_id: str) -> dict:
 
 @app.get("/api/matches/queue", tags=["Review"])
 def review_queue() -> dict:
-    queue = [
-        public_event(state.events[eid])
-        for eid in state.event_order
+    pending_ids = [
+        eid for eid in state.event_order
         if state.events[eid]["link_state"] in {"pending_review", "clarification_needed", "unmatched"}
     ]
-    queue.sort(key=lambda r: r["match_confidence"] or 0.0, reverse=True)
+
+    # Compute RL priority score + cascade impact for each queued event
+    for eid in pending_ids:
+        tracked = state.events[eid]
+        match = tracked.get("match") or {}
+        activity_id = match.get("matched_activity_id")
+
+        schedule_risk = _activity_schedule_risk(activity_id)
+        fan_out = state.cascade.fan_out(activity_id) if activity_id else 0
+
+        features = state.rl.extract_features(
+            match_confidence=float(match.get("confidence") or 0.0),
+            schedule_risk=schedule_risk,
+            cascade_fan_out=fan_out,
+            ingested_at=tracked["ingested_at"],
+            discipline=tracked["event"].get("discipline"),
+        )
+        score = state.rl.priority_score(features)
+        tracked["rl_priority"] = {
+            **state.rl.explain_priority(features, score),
+            "schedule_risk": schedule_risk,
+            "cascade_fan_out": fan_out,
+            "features": features,
+        }
+
+        # Attach a quick cascade summary (not full BFS — just for card display)
+        if activity_id and fan_out > 0:
+            cascade = state.cascade.compute_cascade(activity_id, delay_days=1,
+                                                     current_actuals=state.actuals)
+            tracked["cascade_impact"] = {
+                "total_impacted": cascade["total_impacted"],
+                "max_slip_days": cascade["max_slip_days"],
+                "critical_path_hit": cascade["critical_path_hit"],
+                "summary": cascade["summary"],
+                "top_impacted": cascade["impacted"][:3],
+            }
+        else:
+            tracked["cascade_impact"] = None
+
+    queue = [public_event(state.events[eid]) for eid in pending_ids]
+
+    # Sort by RL priority score (descending) — not by confidence
+    queue.sort(key=lambda r: (r.get("rl_priority") or {}).get("score", 0.0), reverse=True)
+
+    # Attach rank after sorting
+    for rank, item in enumerate(queue, 1):
+        if item.get("rl_priority"):
+            item["rl_priority"]["rank"] = rank
+
     return {
         "queue": queue,
         "count": len(queue),
         "auto_threshold": state.engine.auto_threshold,
         "review_threshold": state.engine.review_threshold,
+        "rl_updates": state.rl.update_count,
     }
 
 
@@ -1357,7 +1436,57 @@ def review_match(event_id: str, req: ReviewRequest, user: dict = Depends(require
         state.apply_event_to_schedule(tracked, actor=req.reviewer)
     detect_conflicts()
 
-    return {"event": public_event(tracked), "feedback_count": len(state.engine.feedback_store)}
+    # RL update — compute reward from this reviewer decision and update weights
+    rl_priority = tracked.get("rl_priority")
+    if rl_priority and rl_priority.get("features"):
+        schedule_risk = rl_priority.get("schedule_risk", "LOW")
+        features = rl_priority["features"]
+        hours_in_queue = features[3] * 24  # denormalize
+        reward = state.rl.compute_reward(approved, schedule_risk, hours_in_queue)
+        state.rl.update(features, reward)
+        state.rl.save(str(DATA / "rl_weights.json"))
+        state.log_audit(
+            stage="LEARN",
+            summary=f"RL policy updated (reward={reward:+.2f}, update #{state.rl.update_count})"
+                    f" — weights: {[round(w,3) for w in state.rl.weights]}",
+            event_id=event_id,
+            actor=req.reviewer,
+            detail={"reward": reward, "weights": state.rl.weights,
+                    "update_count": state.rl.update_count},
+        )
+
+    return {
+        "event": public_event(tracked),
+        "feedback_count": len(state.engine.feedback_store),
+        "rl_update_count": state.rl.update_count,
+    }
+
+
+# --- cascade impact drill-down ---------------------------------------------
+
+@app.get("/api/cascade/{activity_id}", tags=["Review"])
+def get_cascade(activity_id: str, delay_days: int = 1) -> dict:
+    """Full cascade impact for an activity — used for drill-down modal."""
+    if activity_id not in state.activities:
+        raise HTTPException(404, f"Unknown activity '{activity_id}'")
+    return state.cascade.compute_cascade(
+        activity_id, delay_days=delay_days, current_actuals=state.actuals
+    )
+
+
+@app.get("/api/rl/status", tags=["Review"])
+def rl_status() -> dict:
+    """Current RL policy weights and update count — for transparency."""
+    return {
+        "weights": state.rl.weights,
+        "update_count": state.rl.update_count,
+        "feature_names": [
+            "match_confidence", "schedule_risk_score",
+            "cascade_fan_out_norm", "hours_in_queue_norm", "discipline_delay_rate",
+        ],
+        "interpretation": "Higher weight = this factor drives priority more. "
+                          "Weights update after every reviewer decision.",
+    }
 
 
 # --- 4. schedule / gantt ----------------------------------------------------
