@@ -1123,13 +1123,13 @@ $('#btn-reset').onclick = async () => {
 /* ------------------------------------------------------------------ login */
 
 function showLogin() {
-  document.getElementById('login-screen').hidden = false;
-  document.getElementById('app-shell').hidden = true;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
 }
 
 function hideLogin() {
-  document.getElementById('login-screen').hidden = true;
-  document.getElementById('app-shell').hidden = false;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = '';
 }
 
 async function doLogin(e) {
@@ -1164,15 +1164,11 @@ function updateUserBadge() {
   badge.textContent = auth.name + ' (' + auth.role + ')';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('login-form');
-  if (form) form.addEventListener('submit', doLogin);
-
-  const logoutBtn = document.getElementById('btn-logout');
-  if (logoutBtn) logoutBtn.addEventListener('click', () => {
-    auth.clear();
-    showLogin();
-  });
+// Script is at bottom of body — DOM is already ready, bind directly
+document.getElementById('login-form').addEventListener('submit', doLogin);
+document.getElementById('btn-logout').addEventListener('click', () => {
+  auth.clear();
+  showLogin();
 });
 
 /* ------------------------------------------------------------------ boot */
@@ -1190,7 +1186,8 @@ async function bootApp() {
     consoleLine('err', 'Cannot reach the SYNAPSE API: ' + error.message);
   }
   await loadProgress();
-  show(location.hash.slice(1) || 'supervisor');
+  const defaultView = location.hash.slice(1) || (auth.isAdmin() ? 'review' : 'supervisor');
+  show(defaultView);
 }
 
 (async function boot() {
