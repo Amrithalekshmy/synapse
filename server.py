@@ -32,10 +32,12 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
+from jose import JWTError, jwt
 from pydantic import BaseModel, Field
 
 # --- teammate modules -------------------------------------------------------
@@ -66,6 +68,78 @@ SCHEDULE_CSV = DATA / "schedule.csv"
 HISTORY_CSV = DATA / "historical_knowledge_base.csv"
 
 UPLOAD_SUFFIXES = {".txt", ".text", ".md", ".csv", ".xlsx", ".xls", ".pdf"}
+
+
+# ===========================================================================
+# Auth — JWT-based role system (supervisor / admin)
+# ===========================================================================
+
+import hashlib
+import secrets as _secrets
+
+_JWT_SECRET = os.environ.get("SYNAPSE_JWT_SECRET", "synapse-sih2026-secret-key")
+_JWT_ALGORITHM = "HS256"
+_JWT_EXPIRE_HOURS = 8
+
+_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+
+def _hash_pw(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+# Demo users — in production these would come from a database
+_USERS = {
+    "supervisor": {
+        "username": "supervisor",
+        "hashed_password": _hash_pw("site123"),
+        "role": "supervisor",
+        "display_name": "Site Supervisor",
+    },
+    "admin": {
+        "username": "admin",
+        "hashed_password": _hash_pw("synapse2026"),
+        "role": "admin",
+        "display_name": "Project Manager",
+    },
+}
+
+
+def _create_token(username: str, role: str) -> str:
+    from datetime import timedelta
+    payload = {
+        "sub": username,
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=_JWT_EXPIRE_HOURS),
+    }
+    return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
+
+
+def _decode_token(token: str) -> dict:
+    try:
+        return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+def get_current_user(token: str = Depends(_oauth2_scheme)) -> dict:
+    payload = _decode_token(token)
+    username = payload.get("sub")
+    if not username or username not in _USERS:
+        raise HTTPException(status_code=401, detail="User not found")
+    return {"username": username, "role": payload.get("role"), "display_name": _USERS[username]["display_name"]}
+
+
+def require_supervisor(user: dict = Depends(get_current_user)) -> dict:
+    """Any logged-in user (supervisor or admin) can submit reports."""
+    return user
+
+
+def require_admin(user: dict = Depends(get_current_user)) -> dict:
+    """Only admin can approve/reject, resolve conflicts, configure settings."""
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
 
 
 # ===========================================================================
@@ -866,6 +940,25 @@ def health() -> dict:
     }
 
 
+@app.post("/api/login", tags=["Auth"])
+def login(form: OAuth2PasswordRequestForm = Depends()) -> dict:
+    user = _USERS.get(form.username)
+    if not user or not _secrets.compare_digest(_hash_pw(form.password), user["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    token = _create_token(user["username"], user["role"])
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": user["role"],
+        "display_name": user["display_name"],
+    }
+
+
+@app.get("/api/me", tags=["Auth"])
+def me(user: dict = Depends(get_current_user)) -> dict:
+    return user
+
+
 @app.get("/api/demo/sources", tags=["Meta"])
 def demo_sources() -> dict:
     """Bundled sample sources so the demo never depends on a local file picker."""
@@ -937,7 +1030,7 @@ def apply_supervisor_choice(tracked: dict, activity_id: str, supervisor: str) ->
 
 
 @app.post("/api/supervisor/message", tags=["Supervisor"])
-def supervisor_message(req: SupervisorMessageRequest) -> dict:
+def supervisor_message(req: SupervisorMessageRequest, user: dict = Depends(require_supervisor)) -> dict:
     """
     Agentic clarification at input time.
 
@@ -1003,7 +1096,7 @@ def supervisor_message(req: SupervisorMessageRequest) -> dict:
 
 
 @app.post("/api/supervisor/clarify", tags=["Supervisor"])
-def supervisor_clarify(req: ClarifyRequest) -> dict:
+def supervisor_clarify(req: ClarifyRequest, user: dict = Depends(require_supervisor)) -> dict:
     """Apply the supervisor's answer, then run the now-unambiguous event."""
     pending = state.pending_clarifications.pop(req.event_id, None)
     if pending is None:
@@ -1068,7 +1161,7 @@ def supervisor_clarify(req: ClarifyRequest) -> dict:
 # --- 1. upload / input ------------------------------------------------------
 
 @app.post("/api/events/extract", tags=["Events"])
-def extract_from_text(req: TextIngestRequest) -> dict:
+def extract_from_text(req: TextIngestRequest, user: dict = Depends(require_supervisor)) -> dict:
     try:
         source_type = SourceType(req.source_type)
     except ValueError:
@@ -1089,7 +1182,7 @@ def extract_from_text(req: TextIngestRequest) -> dict:
 
 
 @app.post("/api/events/upload", tags=["Events"])
-async def upload_document(file: UploadFile = File(...)) -> dict:
+async def upload_document(file: UploadFile = File(...), user: dict = Depends(require_supervisor)) -> dict:
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in UPLOAD_SUFFIXES:
         raise HTTPException(
@@ -1119,7 +1212,7 @@ async def upload_document(file: UploadFile = File(...)) -> dict:
 
 
 @app.post("/api/events/load-sample", tags=["Events"])
-def load_sample(path: str = Query(..., description="Repo-relative path from /api/demo/sources")) -> dict:
+def load_sample(path: str = Query(..., description="Repo-relative path from /api/demo/sources"), user: dict = Depends(require_supervisor)) -> dict:
     target = (ROOT / path).resolve()
     if not str(target).startswith(str(DATA.resolve())) or not target.exists():
         raise HTTPException(404, f"Sample source '{path}' not found")
@@ -1199,7 +1292,7 @@ def list_activities(q: Optional[str] = None, limit: int = 50) -> dict:
 
 
 @app.post("/api/matches/{event_id}/review", tags=["Review"])
-def review_match(event_id: str, req: ReviewRequest) -> dict:
+def review_match(event_id: str, req: ReviewRequest, user: dict = Depends(require_admin)) -> dict:
     """
     The human decision point — and the active-learning trigger.
 
@@ -1363,7 +1456,7 @@ def list_conflicts(include_resolved: bool = False) -> dict:
 
 
 @app.post("/api/conflicts/{conflict_id}/resolve", tags=["Conflicts"])
-def resolve_conflict(conflict_id: str, req: ConflictResolveRequest) -> dict:
+def resolve_conflict(conflict_id: str, req: ConflictResolveRequest, user: dict = Depends(require_admin)) -> dict:
     conflict = state.conflicts.get(conflict_id)
     if not conflict:
         raise HTTPException(404, f"Unknown conflict '{conflict_id}'")
@@ -1579,7 +1672,7 @@ def get_settings() -> dict:
 
 
 @app.post("/api/settings", tags=["Settings"])
-def update_settings(body: SettingsUpdate) -> dict:
+def update_settings(body: SettingsUpdate, user: dict = Depends(require_admin)) -> dict:
     """Update LLM settings and re-initialise the extraction pipeline."""
     if body.openrouter_api_key is not None:
         state._openrouter_key = body.openrouter_api_key or None
@@ -1603,7 +1696,7 @@ def update_settings(body: SettingsUpdate) -> dict:
 # --- session control --------------------------------------------------------
 
 @app.post("/api/session/reset", tags=["Meta"])
-def reset_session() -> dict:
+def reset_session(user: dict = Depends(require_admin)) -> dict:
     """Clear ingested events, conflicts and actuals — keeps the loaded schedule."""
     state.events.clear()
     state.event_order.clear()

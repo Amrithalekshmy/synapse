@@ -12,6 +12,28 @@
 
 const API = '';
 
+/* ------------------------------------------------------------------ auth */
+
+const auth = {
+  token: sessionStorage.getItem('synapse_token'),
+  role:  sessionStorage.getItem('synapse_role'),
+  name:  sessionStorage.getItem('synapse_name'),
+  save(token, role, name) {
+    this.token = token; this.role = role; this.name = name;
+    sessionStorage.setItem('synapse_token', token);
+    sessionStorage.setItem('synapse_role',  role);
+    sessionStorage.setItem('synapse_name',  name);
+  },
+  clear() {
+    this.token = null; this.role = null; this.name = null;
+    sessionStorage.removeItem('synapse_token');
+    sessionStorage.removeItem('synapse_role');
+    sessionStorage.removeItem('synapse_name');
+  },
+  isAdmin()      { return this.role === 'admin'; },
+  isLoggedIn()   { return !!this.token; },
+};
+
 const VIEWS = [
   { id: 'supervisor', step: '0', label: 'Supervisor input' },
   { id: 'ingest',     step: '1', label: 'Upload & ingest' },
@@ -51,10 +73,10 @@ function esc(value) {
 }
 
 async function api(path, options = {}) {
-  const res = await fetch(API + path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+  const res = await fetch(API + path, { headers, ...options });
+  if (res.status === 401) { auth.clear(); showLogin(); throw new Error('Session expired — please log in again.'); }
   if (!res.ok) {
     let message = res.statusText;
     try { message = (await res.json()).detail || message; } catch { /* keep statusText */ }
@@ -1098,9 +1120,64 @@ $('#btn-reset').onclick = async () => {
   show(state.view);
 };
 
+/* ------------------------------------------------------------------ login */
+
+function showLogin() {
+  document.getElementById('login-screen').hidden = false;
+  document.getElementById('app-shell').hidden = true;
+}
+
+function hideLogin() {
+  document.getElementById('login-screen').hidden = true;
+  document.getElementById('app-shell').hidden = false;
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.hidden = true;
+  try {
+    const body = new URLSearchParams({ username, password });
+    const res = await fetch('/api/login', { method: 'POST', body });
+    if (!res.ok) {
+      const d = await res.json();
+      errEl.textContent = d.detail || 'Login failed';
+      errEl.hidden = false;
+      return;
+    }
+    const data = await res.json();
+    auth.save(data.access_token, data.role, data.display_name);
+    hideLogin();
+    updateUserBadge();
+    await bootApp();
+  } catch (err) {
+    errEl.textContent = 'Cannot reach server: ' + err.message;
+    errEl.hidden = false;
+  }
+}
+
+function updateUserBadge() {
+  const badge = document.getElementById('user-badge');
+  if (!badge) return;
+  badge.textContent = auth.name + ' (' + auth.role + ')';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('login-form');
+  if (form) form.addEventListener('submit', doLogin);
+
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    auth.clear();
+    showLogin();
+  });
+});
+
 /* ------------------------------------------------------------------ boot */
 
-(async function boot() {
+async function bootApp() {
   try {
     const health = await api('/api/health');
     const aiMode = health.llm_extraction_active
@@ -1114,4 +1191,11 @@ $('#btn-reset').onclick = async () => {
   }
   await loadProgress();
   show(location.hash.slice(1) || 'supervisor');
+}
+
+(async function boot() {
+  if (!auth.isLoggedIn()) { showLogin(); return; }
+  updateUserBadge();
+  hideLogin();
+  await bootApp();
 })();
