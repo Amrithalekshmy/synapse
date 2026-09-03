@@ -100,6 +100,42 @@ a { color: var(--accent); text-decoration: none; }
 }
 a:hover { text-decoration: underline; }
 
+/* ----------------------------------------------------------- RL priority */
+
+.rl-rank {
+  font-size: .72rem; font-weight: 700; border-radius: 50%;
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.rl-rank.rank-1 { background: #f59e0b; color: #000; }
+.rl-rank.rank-2 { background: #94a3b8; color: #000; }
+.rl-rank.rank-3 { background: #cd7c41; color: #fff; }
+.rl-rank.rank-n { background: var(--bg-panel); color: var(--dim); border: 1px solid var(--line); }
+
+.card-head-right {
+  display: flex; align-items: flex-start; gap: 6px; flex-shrink: 0;
+}
+
+.cascade-bar {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .78rem; padding: 5px 10px; border-radius: 4px; margin-bottom: 10px;
+  background: color-mix(in srgb, var(--medium) 12%, transparent);
+  border-left: 3px solid var(--medium); color: var(--dim);
+}
+.cascade-bar.critical {
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+  border-left-color: var(--bad); color: var(--bad);
+}
+.cascade-icon { flex-shrink: 0; }
+
+.rl-driver { font-size: .72rem; margin-left: auto; }
+
+.rl-status-bar {
+  font-size: .74rem; color: var(--accent); padding: 6px 12px;
+  background: var(--accent-glow); border: 1px solid var(--accent-dim);
+  border-radius: 4px; margin-bottom: 10px; text-align: center;
+}
+
 /* ---------------------------------------------------------------- layout */
 
 .app {

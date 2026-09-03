@@ -436,6 +436,12 @@ async function loadReview() {
   }
 
   list.innerHTML = '';
+
+  if (data.rl_updates > 0) {
+    const rlBar = el('div', 'rl-status-bar');
+    rlBar.textContent = `RL queue — ${data.rl_updates} decision${data.rl_updates === 1 ? '' : 's'} learned · sorted by impact priority`;
+    list.appendChild(rlBar);
+  }
   data.queue.forEach((event) => {
     const card = el('div', 'card ' + (event.link_state === 'unmatched' ? 'danger' : 'attention'));
     const top = event.candidates && event.candidates[0];
@@ -444,14 +450,34 @@ async function loadReview() {
     // on the existence of candidates.
     const approvable = Boolean(event.matched_activity_id);
 
+    const rl = event.rl_priority;
+    const ci = event.cascade_impact;
+    const rankBadge = rl && rl.rank
+      ? `<span class="rl-rank rank-${rl.rank <= 3 ? rl.rank : 'n'}">#${rl.rank}</span>`
+      : '';
+    const cascadeLine = ci && ci.total_impacted > 0
+      ? `<div class="cascade-bar ${ci.critical_path_hit ? 'critical' : ''}">
+           <span class="cascade-icon">${ci.critical_path_hit ? '⚠' : '↓'}</span>
+           ${esc(ci.summary)}
+         </div>`
+      : '';
+    const rlDriverLine = rl && rl.top_driver
+      ? `<span class="rl-driver faint">driven by: ${esc(rl.top_driver)} · score ${rl.score}</span>`
+      : '';
+
     card.innerHTML = `
       <div class="card-head">
         <div style="flex:1;min-width:0">
           <div class="section-label">Field event · ${esc(event.source_id)}</div>
           <div class="quote">${esc(event.raw_text)}</div>
         </div>
-        ${linkBadge(event.link_state)}
+        <div class="card-head-right">
+          ${rankBadge}
+          ${linkBadge(event.link_state)}
+        </div>
       </div>
+
+      ${cascadeLine}
 
       <div class="row tiny dim" style="margin-bottom:12px">
         ${event.discipline ? `<span class="badge mute">${esc(event.discipline)}</span>` : ''}
@@ -459,6 +485,7 @@ async function loadReview() {
         ${event.location ? `<span class="badge mute">${esc(event.location)}</span>` : ''}
         ${event.event_date ? `<span class="badge mute">${esc(event.event_date)}</span>` : ''}
         <span class="faint">extraction ${pct(event.extraction_confidence)}</span>
+        ${rlDriverLine}
       </div>
 
       ${event.clarification ? `
