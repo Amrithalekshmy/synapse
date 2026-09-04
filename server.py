@@ -62,6 +62,7 @@ from knowledge_base import DelayRiskEngine, KnowledgeBase, NLQueryEngine, Produc
 
 from amrita.cascade import CascadeImpactEngine
 from amrita.rl_priority import RLPriorityQueue
+from amrita.rl_agent import DecisionAgent, ACTION_NAMES as _AGENT_ACTION_NAMES
 
 ROOT = Path(__file__).parent
 DATA = ROOT / "data"
@@ -266,6 +267,7 @@ class SynapseState:
 
         self.cascade: CascadeImpactEngine = CascadeImpactEngine()
         self.rl: RLPriorityQueue = RLPriorityQueue()
+        self.agent: DecisionAgent = DecisionAgent()
 
         self.activities: dict[str, dict] = {}     # activity_id -> parsed activity
         self.actuals: dict[str, dict] = {}        # activity_id -> observed state
@@ -301,6 +303,9 @@ class SynapseState:
         # Load RL priority weights (or start fresh if file missing)
         rl_weights_path = str(DATA / "rl_weights.json")
         self.rl.load(rl_weights_path)
+
+        # Load RL decision agent weights
+        self.agent.load(str(DATA / "rl_agent_weights.json"))
 
         self.kb = KnowledgeBase()
         if HISTORY_CSV.exists():
@@ -542,37 +547,93 @@ def track_event(event: ExecutionEvent, source_label: str) -> dict:
     tracked["match"] = match
     tracked["confidence_band"] = confidence_band(match.get("confidence", 0.0))
 
-    if match.get("requires_clarification"):
+    # ── RL Decision Agent: replaces hardcoded threshold routing ────────────
+    # Extract features and ask the agent what action to take.
+    # Falls back to matcher's own decision only when there are no candidates
+    # at all (confidence == 0 means nothing to auto-link or clarify).
+    match_confidence = match.get("confidence", 0.0)
+    candidates       = match.get("candidates", [])
+    activity_id_hit  = match.get("matched_activity_id")
+
+    if match_confidence > 0.0:
+        schedule_risk  = _activity_schedule_risk(activity_id_hit)
+        fan_out        = state.cascade.fan_out(activity_id_hit) if activity_id_hit else 0
+        agent_features = state.agent.extract_features(
+            match_confidence = match_confidence,
+            candidates       = candidates,
+            schedule_risk    = schedule_risk,
+            cascade_fan_out  = fan_out,
+            discipline       = payload.get("discipline"),
+            event_text       = payload.get("raw_text", ""),
+        )
+        # Suppress exploration for very high confidence matches — agent should
+        # never randomly send a 0.95-confidence event to the planner queue.
+        explore = match_confidence < 0.85
+        action_name, action_idx, q_values = state.agent.decide(agent_features, explore=explore)
+        agent_explanation = state.agent.explain(
+            agent_features, action_name, action_idx, q_values
+        )
+        tracked["agent_decision"] = {
+            "action":      action_name,
+            "action_idx":  action_idx,
+            "features":    agent_features,
+            "q_values":    {_AGENT_ACTION_NAMES[i]: q_values[i] for i in range(3)},
+            "explanation": agent_explanation,
+        }
+
+        # Map agent action → link_state
+        if action_name == "auto_link" and activity_id_hit:
+            tracked["link_state"]         = "auto_linked"
+            tracked["linked_activity_id"] = activity_id_hit
+        elif action_name == "ask_clarification":
+            tracked["link_state"]   = "clarification_needed"
+            # Use matcher's clarification question if available; otherwise generate one
+            question = match.get("clarification_question") or (
+                f"Which schedule activity does '{payload.get('raw_text','')[:60]}' refer to?"
+            )
+            tracked["clarification"] = {
+                "question": question,
+                "options":  candidates,
+            }
+        else:  # send_to_planner
+            tracked["link_state"] = "pending_review"
+    else:
+        # No viable candidate — always send to planner, no agent decision
+        tracked["link_state"]   = "unmatched"
+        tracked["agent_decision"] = None
+
+    # Keep backwards-compatible clarification block for matcher-flagged events
+    if match.get("requires_clarification") and tracked["link_state"] not in (
+        "clarification_needed", "auto_linked"
+    ):
         tracked["link_state"] = "clarification_needed"
         tracked["clarification"] = {
             "question": match.get("clarification_question"),
-            "options": match.get("candidates", []),
+            "options":  candidates,
         }
+
+    if tracked["link_state"] == "clarification_needed":
         state.log_audit(
             stage="CLARIFY",
-            summary=f"Ambiguous — {match.get('clarification_question')}",
+            summary=f"Agent→clarify — {(tracked.get('clarification') or {}).get('question','')}",
             event_id=event.event_id,
-            detail={"candidates": match.get("candidates", [])},
+            detail={"candidates": candidates, "agent": tracked.get("agent_decision")},
         )
-    elif match["decision"] == "auto_linked":
-        tracked["link_state"] = "auto_linked"
-        tracked["linked_activity_id"] = match["matched_activity_id"]
-    elif match["decision"] == "review":
-        tracked["link_state"] = "pending_review"
-    else:
-        tracked["link_state"] = "unmatched"
 
     state.log_audit(
         stage="MATCH",
         summary=(
-            f"{match.get('matched_activity_id') or 'no match'} "
-            f"@ {round(match.get('confidence', 0.0) * 100)}% → {tracked['link_state']}"
+            f"{activity_id_hit or 'no match'} "
+            f"@ {round(match_confidence * 100)}% "
+            f"→ agent:{(tracked.get('agent_decision') or {}).get('action','—')} "
+            f"→ {tracked['link_state']}"
         ),
         event_id=event.event_id,
-        activity_id=match.get("matched_activity_id"),
+        activity_id=activity_id_hit,
         detail={
-            "candidates": match.get("candidates", []),
-            "explanation": match.get("explanation"),
+            "candidates":    candidates,
+            "explanation":   match.get("explanation"),
+            "agent_decision": tracked.get("agent_decision"),
         },
     )
 
@@ -887,8 +948,10 @@ def public_event(tracked: dict) -> dict:
         "review": tracked.get("review"),
         "ingested_at": tracked["ingested_at"],
         # --- RL priority & cascade impact (computed on-the-fly) ---
-        "rl_priority": tracked.get("rl_priority"),
+        "rl_priority":    tracked.get("rl_priority"),
         "cascade_impact": tracked.get("cascade_impact"),
+        # --- RL Decision Agent routing decision ---
+        "agent_decision": tracked.get("agent_decision"),
     }
 
 
@@ -1455,10 +1518,40 @@ def review_match(event_id: str, req: ReviewRequest, user: dict = Depends(require
                     "update_count": state.rl.update_count},
         )
 
+    # RL Decision Agent update — reward based on this reviewer action
+    agent_dec = tracked.get("agent_decision")
+    if agent_dec and agent_dec.get("features"):
+        was_reassigned = (decision == "reassign")
+        agent_reward = state.agent.compute_reward(
+            action_idx       = agent_dec["action_idx"],
+            approved         = approved,
+            match_confidence = match.get("confidence", 0.0),
+            was_reassigned   = was_reassigned,
+        )
+        state.agent.update(agent_dec["features"], agent_dec["action_idx"], agent_reward)
+        state.agent.save(str(DATA / "rl_agent_weights.json"))
+        state.log_audit(
+            stage="LEARN",
+            summary=(
+                f"Agent policy updated — action={agent_dec['action']} "
+                f"reward={agent_reward:+.2f} "
+                f"update #{state.agent.update_count}"
+            ),
+            event_id=event_id,
+            actor=req.reviewer,
+            detail={
+                "agent_action":  agent_dec["action"],
+                "agent_reward":  agent_reward,
+                "agent_weights": state.agent.weights,
+                "update_count":  state.agent.update_count,
+            },
+        )
+
     return {
         "event": public_event(tracked),
         "feedback_count": len(state.engine.feedback_store),
         "rl_update_count": state.rl.update_count,
+        "agent_update_count": state.agent.update_count,
     }
 
 
@@ -1486,6 +1579,23 @@ def rl_status() -> dict:
         ],
         "interpretation": "Higher weight = this factor drives priority more. "
                           "Weights update after every reviewer decision.",
+    }
+
+
+@app.get("/api/agent/status", tags=["Review"])
+def agent_status() -> dict:
+    """RL Decision Agent — current policy weights, epsilon, and action distribution."""
+    from amrita.rl_agent import FEATURE_NAMES, ACTION_NAMES
+    return {
+        "weights":        state.agent.weights,
+        "update_count":   state.agent.update_count,
+        "epsilon":        round(state.agent._epsilon, 4),
+        "action_names":   ACTION_NAMES,
+        "feature_names":  FEATURE_NAMES,
+        "interpretation": (
+            "The agent decides routing for each event: auto_link / ask_clarification / "
+            "send_to_planner. Weights[action][feature] update after every reviewer decision."
+        ),
     }
 
 

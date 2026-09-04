@@ -1,0 +1,54 @@
+{
+  "weights": [
+    [
+      2.5,
+      1.5,
+      -0.3,
+      0.0,
+      0.0,
+      1.2,
+      -0.5,
+      -1.5
+    ],
+    [
+      0.0,
+      -3.0,
+      0.0,
+      0.0,
+      0.0,
+      -2.0,
+      0.5,
+      2.0
+    ],
+    [
+      0.775,
+      0.5,
+      1.175,
+      0.6749999999999999,
+      0.383,
+      -0.025,
+      0.285,
+      0.0
+    ]
+  ],
+  "update_count": 1,
+  "max_fan_out": 3,
+  "action_names": [
+    "auto_link",
+    "ask_clarification",
+    "send_to_planner"
+  ],
+  "feature_names": [
+    "match_confidence",
+    "score_gap",
+    "schedule_risk_score",
+    "cascade_fan_out_norm",
+    "discipline_delay_rate",
+    "has_identifier",
+    "candidate_count_norm",
+    "is_vague"
+  ],
+  "learning_rate": 0.05,
+  "epsilon": 0.099,
+  "saved_at": "2026-09-04T07:51:34.160847+00:00"
+}
