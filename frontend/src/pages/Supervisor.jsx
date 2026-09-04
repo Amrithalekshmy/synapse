@@ -70,7 +70,7 @@ export default function Supervisor() {
   const handleClarify = async (index) => {
     if (!pendingClarification || loading) return;
     const option = pendingClarification.options[index];
-    const answer = option.label || option.text || option.activity_id || `Option ${index + 1}`;
+    const answer = typeof option === 'string' ? option : (option.label || option.text || option.activity_id || `Option ${index + 1}`);
     addMsg('user', answer);
     setLoading(true);
 
@@ -134,7 +134,7 @@ export default function Supervisor() {
                         onClick={() => handleClarify(idx)}
                         disabled={loading || !pendingClarification}
                       >
-                        {opt.label || opt.text || opt.activity_id || `Option ${idx + 1}`}
+                        {typeof opt === 'string' ? opt : (opt.label || opt.text || opt.activity_id || `Option ${idx + 1}`)}
                       </button>
                     ))}
                   </div>
