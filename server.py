@@ -1433,6 +1433,82 @@ def list_activities(q: Optional[str] = None, limit: int = 50) -> dict:
     return {"activities": rows[:limit], "count": len(rows)}
 
 
+class CreateActivityRequest(BaseModel):
+    activity_id: Optional[str] = None
+    activity_name: str
+    discipline: Optional[str] = None
+    location: Optional[str] = None
+    wbs_id: Optional[str] = None
+    planned_start: Optional[str] = None
+    planned_finish: Optional[str] = None
+    event_id: Optional[str] = None   # link this event to the new activity
+
+
+@app.post("/api/activities/create", tags=["Review"])
+def create_activity(req: CreateActivityRequest, user: dict = Depends(require_admin)) -> dict:
+    """
+    Low-confidence path: planner creates a new L5/L6 activity not yet in the schedule.
+    The new activity is added to the in-memory schedule and matcher, and optionally
+    linked to a queued event.
+    """
+    import uuid as _uuid
+    aid = req.activity_id or f"NEW-{_uuid.uuid4().hex[:6].upper()}"
+    if aid in state.activities:
+        raise HTTPException(409, f"Activity '{aid}' already exists")
+
+    new_act = {
+        "activity_id":   aid,
+        "activity_name": req.activity_name,
+        "discipline":    req.discipline or "",
+        "location":      req.location or "",
+        "wbs_id":        req.wbs_id or "",
+        "planned_start": req.planned_start or "",
+        "planned_finish": req.planned_finish or "",
+        "status":        "NOT_STARTED",
+        "predecessors":  "",
+        "successors":    "",
+        "is_new":        True,
+    }
+    state.activities[aid] = new_act
+
+    # Hot-add to the matching engine so it appears in future matches
+    state.engine.load_activities(list(state.activities.values()))
+
+    # Also add to cascade engine
+    state.cascade.load_activities(list(state.activities.values()))
+
+    state.log_audit(
+        stage="SCHEDULE",
+        summary=f"New activity created: {aid} — {req.activity_name}",
+        activity_id=aid,
+        actor=user["username"],
+        detail=new_act,
+    )
+
+    # Optionally link a queued event to this new activity
+    linked_event = None
+    if req.event_id and req.event_id in state.events:
+        tracked = state.events[req.event_id]
+        tracked["link_state"] = "approved"
+        tracked["linked_activity_id"] = aid
+        tracked["review"] = {
+            "decision":    "reassign",
+            "reviewer":    user["username"],
+            "activity_id": aid,
+            "note":        f"Linked to newly created activity {aid}",
+            "reviewed_at": _now(),
+        }
+        state.apply_event_to_schedule(tracked, actor=user["username"])
+        linked_event = req.event_id
+
+    return {
+        "activity_id":   aid,
+        "activity_name": req.activity_name,
+        "linked_event":  linked_event,
+        "total_activities": len(state.activities),
+    }
+
+
 @app.post("/api/matches/{event_id}/review", tags=["Review"])
 def review_match(event_id: str, req: ReviewRequest, user: dict = Depends(require_admin)) -> dict:
     """

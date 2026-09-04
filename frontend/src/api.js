@@ -99,3 +99,7 @@ export const uploadDocument = async (file) => {
 export const getSettings = () => request('GET', '/api/settings');
 export const updateSettings = (body) => request('POST', '/api/settings', body);
 export const resetSession = () => request('POST', '/api/session/reset');
+export const getRLStatus = () => request('GET', '/api/rl/status');
+export const getAgentStatus = () => request('GET', '/api/agent/status');
+export const getCascade = (activityId, delayDays = 1) => request('GET', `/api/cascade/${activityId}?delay_days=${delayDays}`);
+export const createActivity = (body) => request('POST', '/api/activities/create', body);
