@@ -80,9 +80,10 @@ export const getAudit = (stage) => {
   return request('GET', `/api/audit?${params}`);
 };
 export const getDemoSources = () => request('GET', '/api/demo/sources');
+export const seedDemo = () => request('POST', '/api/demo/seed');
 export const supervisorMessage = (text, supervisor) => request('POST', '/api/supervisor/message', { text, supervisor });
-export const supervisorClarify = (clarificationId, choiceIndex, supervisor) =>
-  request('POST', '/api/supervisor/clarify', { clarification_id: clarificationId, choice_index: choiceIndex, supervisor });
+export const supervisorClarify = (eventId, answer, supervisor) =>
+  request('POST', '/api/supervisor/clarify', { event_id: eventId, answer, supervisor });
 export const extractFromText = (text) => request('POST', '/api/events/extract', { text });
 export const loadSample = (path) => request('POST', `/api/events/load-sample?path=${encodeURIComponent(path)}`);
 export const uploadDocument = async (file) => {

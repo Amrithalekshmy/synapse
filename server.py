@@ -1068,6 +1068,79 @@ def demo_sources() -> dict:
     return {"sources": files}
 
 
+@app.post("/api/demo/seed", tags=["Meta"])
+def demo_seed(user: dict = Depends(require_supervisor)) -> dict:
+    """
+    Load all bundled sample sources in one click, then inject two realistic
+    synthetic conflicts so the Conflict Resolution page is non-empty for demos.
+    """
+    loaded, total_events = [], 0
+    for path in sorted(DATA.glob("daily_reports/*.txt")) + sorted(DATA.glob("discipline_report_*.csv")):
+        result = state.extractor.process_file(
+            str(path), source_id=path.stem, reference_date=date.today()
+        )
+        summary = ingest_events(result.events, source_label=f"Demo · {path.name}")
+        loaded.append({"file": path.name, "events": summary.get("events_detected", 0)})
+        total_events += summary.get("events_detected", 0)
+
+    detect_conflicts()
+
+    # ── seed synthetic conflicts if none were auto-detected ─────────────────
+    if not any(not c.get("resolved") for c in state.conflicts.values()):
+        # Pick two activities from the loaded schedule to illustrate conflicts.
+        activity_ids = list(state.activities.keys())
+        demo_pairs = [
+            (activity_ids[2] if len(activity_ids) > 2 else "A-001", "2026-08-29",
+             "DPR_2026_08_29", "in_progress",
+             "discipline_report_piping", "completed",
+             "DPR reports activity still in progress; discipline sheet records it as completed on the same date."),
+            (activity_ids[5] if len(activity_ids) > 5 else "A-002", "2026-08-30",
+             "supervisor::site_supervisor", "completed",
+             "DPR_2026_08_30", "not_started",
+             "Supervisor message says work is done; daily progress report shows not started — possible wrong activity referenced."),
+        ]
+        for act_id, ev_date, src_a, status_a, src_b, status_b, desc in demo_pairs:
+            cfl_id = f"CFL-{act_id}-{ev_date}"
+            if cfl_id not in state.conflicts:
+                state.conflicts[cfl_id] = {
+                    "conflict_id": cfl_id,
+                    "activity_id": act_id,
+                    "activity_name": state.activities.get(act_id, {}).get("activity_name", act_id),
+                    "event_date": ev_date,
+                    "claims": [
+                        {"source_id": src_a, "claim_label": src_a, "status": status_a,
+                         "raw_text": f"Activity {act_id} reported as {status_a}", "confidence": 0.82},
+                        {"source_id": src_b, "claim_label": src_b, "status": status_b,
+                         "raw_text": f"Activity {act_id} reported as {status_b}", "confidence": 0.74},
+                    ],
+                    "contradictions": [
+                        {"between": [src_a, src_b], "type": "status_conflict",
+                         "message": f"{src_a} reports {status_a}, but {src_b} reports {status_b}.",
+                         "severity": "HIGH"}
+                    ],
+                    "description": desc,
+                    "kind": "same_day",
+                    "severity": "HIGH",
+                    "resolved": False,
+                    "resolution": None,
+                    "detected_at": _now(),
+                    "event_ids": [],
+                }
+                state.log_audit(
+                    stage="CONFLICT",
+                    summary=f"Demo seed: {act_id} on {ev_date} — {src_a}={status_a} vs {src_b}={status_b}",
+                    activity_id=act_id,
+                )
+
+    open_conflicts = sum(1 for c in state.conflicts.values() if not c.get("resolved"))
+    return {
+        "loaded": loaded,
+        "total_events": total_events,
+        "open_conflicts": open_conflicts,
+        "message": f"Loaded {total_events} events from {len(loaded)} files. {open_conflicts} conflicts ready.",
+    }
+
+
 # --- 0. agentic supervisor input -------------------------------------------
 
 def _candidate_activities(text: str, top_k: int = 5) -> list[dict]:

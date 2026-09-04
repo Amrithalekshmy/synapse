@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, CloudUpload } from 'lucide-react';
-import { getDemoSources, loadSample, uploadDocument, extractFromText } from '../api';
+import { Upload, FileText, CloudUpload, Zap } from 'lucide-react';
+import { getDemoSources, loadSample, uploadDocument, extractFromText, seedDemo } from '../api';
 
 export default function Ingest() {
   const [sources, setSources] = useState([]);
@@ -8,10 +8,24 @@ export default function Ingest() {
   const [result, setResult] = useState(null);
   const [pasteText, setPasteText] = useState('');
   const [file, setFile] = useState(null);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     getDemoSources().then((res) => setSources(res.sources || [])).catch(console.error);
   }, []);
+
+  const handleSeedDemo = async () => {
+    setSeeding(true);
+    setResult(null);
+    try {
+      const res = await seedDemo();
+      setResult({ ...res, _seed: true });
+    } catch (err) {
+      setResult({ error: err.message });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const handleLoadSample = async (path) => {
     setLoading(true);
@@ -62,6 +76,24 @@ export default function Ingest() {
         <p className="page-subtitle">
           Daily progress reports, discipline spreadsheets, and pasted text all enter the same pipeline.
         </p>
+      </div>
+
+      <div className="card mb-4" style={{ background: 'var(--primary-dim, #0d2a26)', border: '1px solid var(--primary)' }}>
+        <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
+          <Zap size={20} color="var(--primary)" style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div className="font-semibold text-sm">Load all demo data in one click</div>
+            <div className="text-xs text-muted mt-1">Ingests all 3 DPRs + 2 discipline sheets (Oil India sample dataset) and seeds the Conflict Resolution queue for showcase.</div>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={handleSeedDemo}
+            disabled={seeding || loading}
+            style={{ flexShrink: 0 }}
+          >
+            <Zap size={16} /> {seeding ? 'Loading...' : 'Load demo data'}
+          </button>
+        </div>
       </div>
 
       <div className="grid-2">
@@ -129,6 +161,17 @@ export default function Ingest() {
           <div className="card-title" style={{ marginBottom: 8 }}>Result</div>
           {result.error ? (
             <p className="text-sm" style={{ color: 'var(--danger)' }}>{result.error}</p>
+          ) : result._seed ? (
+            <div>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--primary)' }}>{result.message}</p>
+              {(result.loaded || []).map((f, i) => (
+                <div key={i} className="flex gap-3 text-xs text-muted" style={{ padding: '3px 0' }}>
+                  <span className="font-mono">{f.file}</span>
+                  <span>{f.events} events</span>
+                </div>
+              ))}
+              <p className="text-xs mt-2 text-muted">Check the Review Queue and Conflict Resolution pages.</p>
+            </div>
           ) : (
             <div>
               <p className="text-sm mb-2">

@@ -29,21 +29,36 @@ export default function Supervisor() {
     try {
       const res = await supervisorMessage(text, user?.username || 'supervisor');
 
-      if (res.clarification) {
-        const c = res.clarification;
-        setPendingClarification(c);
-        addMsg('clarification', c.question, { options: c.options, clarification_id: c.clarification_id });
+      if (res.needs_clarification) {
+        const clarif = {
+          clarification_id: res.event_id,
+          question: res.question,
+          options: res.options || [],
+        };
+        setPendingClarification(clarif);
+        addMsg('clarification', res.question, { options: res.options || [], clarification_id: res.event_id });
       } else if (res.event) {
         const ev = res.event;
-        addMsg('success', `Event extracted: ${ev.description}`, {
+        const ls = ev.link_state || '';
+        let detail = '';
+        if (ls === 'auto_linked') {
+          detail = ` Auto-linked to ${ev.matched_activity_id} — schedule updated immediately.`;
+        } else if (ls === 'pending_review') {
+          detail = ` Sent to Review Queue (${ev.match_confidence != null ? (ev.match_confidence * 100).toFixed(0) + '% confidence' : 'medium confidence'}) — a planner must approve it before the schedule updates.`;
+        } else if (ls === 'clarification_needed') {
+          detail = ' Flagged for clarification in Review Queue.';
+        } else if (ls === 'unmatched') {
+          detail = ' No matching activity found — appears in Events page as unmatched.';
+        }
+        addMsg('success', `Extracted: "${ev.description || ev.raw_text}"${detail}`, {
           event_id: ev.event_id,
           confidence: ev.match_confidence,
-          link_state: ev.link_state,
+          link_state: ls,
           matched: ev.matched_activity_id,
         });
         setPendingClarification(null);
       } else {
-        addMsg('system', 'Processed — check the events page for details.');
+        addMsg('system', 'Processed — check the Review Queue or Events page.');
       }
     } catch (err) {
       addMsg('system', `Error: ${err.message}`);
@@ -55,23 +70,29 @@ export default function Supervisor() {
   const handleClarify = async (index) => {
     if (!pendingClarification || loading) return;
     const option = pendingClarification.options[index];
-    addMsg('user', option.label || option.text || `Option ${index + 1}`);
+    const answer = option.label || option.text || option.activity_id || `Option ${index + 1}`;
+    addMsg('user', answer);
     setLoading(true);
 
     try {
       const res = await supervisorClarify(
         pendingClarification.clarification_id,
-        index,
+        answer,
         user?.username || 'supervisor'
       );
       if (res.event) {
-        addMsg('success', `Linked to ${res.event.matched_activity_id || 'schedule'}: ${res.event.description}`, {
-          event_id: res.event.event_id,
-          confidence: res.event.match_confidence,
-          link_state: res.event.link_state,
+        const ev = res.event;
+        const ls = ev.link_state || '';
+        let detail = '';
+        if (ls === 'auto_linked') detail = ` — schedule updated.`;
+        else if (ls === 'pending_review') detail = ` — sent to Review Queue for approval.`;
+        addMsg('success', `Linked to ${ev.matched_activity_id || 'schedule'}: "${ev.description}"${detail}`, {
+          event_id: ev.event_id,
+          confidence: ev.match_confidence,
+          link_state: ls,
         });
       } else {
-        addMsg('system', 'Clarification applied.');
+        addMsg('system', 'Clarification applied — check the Review Queue.');
       }
       setPendingClarification(null);
     } catch (err) {
